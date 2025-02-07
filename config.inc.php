@@ -8,7 +8,7 @@ global $config;
 date_default_timezone_set('UTC');
 
 $local = false;
-$local = true;
+//$local = true;
 
 $config['site_name'] = "Bold View";
 
