@@ -2,16 +2,27 @@
 
 error_reporting(E_ALL);
 
+require_once (dirname(__FILE__) . '/config.inc.php');
+
 require_once (dirname(__FILE__) . '/core.php');
 //require_once (dirname(__FILE__) . '/taxonomy/taxonomy.php');
 
 //----------------------------------------------------------------------------------------
 function html_start()
 {
+	global $config;
+	
 	echo '<html>';
 	
 	echo '<head>';
 	
+	echo '<meta charset="utf-8" />';
+		
+	echo '<!-- base -->
+    	<base href="' . $config['web_root'] . '" /><!--[if IE]></base><![endif]-->';
+    	
+    echo '<title>' . $config['site_name'] . '</title>';   	
+		
 	require_once(dirname(__FILE__) . '/map.inc.php');
 	
 	echo '<style>';
@@ -90,8 +101,8 @@ echo '</script>' . "\n";
 	<ul>
 		<li><a href=".">Home</a></li>
 		<!-- <li><a href="?taxon=713">Taxonomy</a></li> -->
-		<li><a href="?map">Map</a></li>
-		<li><a href="?blast">BLAST</a></li>
+		<li><a href="map">Map</a></li>
+		<li><a href="blast">BLAST</a></li>
 	</ul>
 	</nav>';
 	
@@ -112,6 +123,22 @@ function default_display()
 	html_start();
 
 	echo '<div class="main">';
+	
+	echo '<h1>BOLD View</h1>';
+	
+	echo '<p>BOLD View is an tool to explore DNA barcode data.</p>';
+	
+	echo '<h2>Starting points</h2>';
+	
+	echo '<ul>';
+	echo '<li>A browseable <a href="map">map</a> of barcodes.</li>';
+	echo '<li>Find barcodes that <a href="blast"> match</a> a sequence using vector search.</li>';
+	echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
+	echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
+	
+	
+	echo '</ul>';
+	
 	echo '</div>';
 
 	html_end();	

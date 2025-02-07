@@ -684,8 +684,13 @@ function identifier_link($namespace, $value)
 	switch ($namespace)
 	{
 		case 'bin_uri':
+			//$html = '<a href="?' . $namespace . '=' . urlencode($value) . '">' . $value . '</a>';
+			$html = '<a href="bin/' . $value . '">' . $value . '</a>';			
+			break;
+		
 		case 'processid':
-			$html = '<a href="?' . $namespace . '=' . urlencode($value) . '">' . $value . '</a>';
+			// $html = '<a href="?' . $namespace . '=' . urlencode($value) . '">' . $value . '</a>';
+			$html = '<a href="record/' . $value . '">' . $value . '</a>';			
 			break;
 						
 		default:

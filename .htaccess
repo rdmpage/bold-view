@@ -1,0 +1,25 @@
+RewriteEngine On
+
+# Some hosts may require you to use the `RewriteBase` directive.
+# If you need to use the `RewriteBase` directive, it should be the
+# absolute physical path to the directory that contains this htaccess file.
+#
+#RewriteBase /
+RewriteBase /bold-view/
+
+#-----------------------------------------------------------------------------------------
+# barcode
+
+RewriteRule record/(.*)$ ?record=$1 [NC,L]
+
+# bin
+
+RewriteRule bin/(.*)$ ?bin_uri=$1 [NC,L]
+
+# map
+
+RewriteRule map$ ?map [NC,L]
+
+# blast
+
+RewriteRule blast$ ?blast [NC,L]

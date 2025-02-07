@@ -119,7 +119,8 @@ function display_barcode ($id, $format = '', $callback = '')
 				$html = '';
 				$html .= '<h2>' . $id . '</h2>';
 				$html .= '<p>Summarise this barcode here</p>';	
-				$html .= '<p><a href="?record=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
+				//$html .= '<p><a href="?record=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
+				$html .= '<p><a href="record/' . $id . '">View ' . $id . '</a>' . '</p>';	
 				
 				if (isset($doc->images))
 				{
@@ -310,7 +311,8 @@ function display_bin ($id, $format = '', $callback = '')
 				$html = '';
 				$html .= '<h2>' . $id . '</h2>';
 				$html .= '<p>Summarise this bin here</p>';			
-				$html .= '<p><a href="?bin_uri=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
+				// $html .= '<p><a href="?bin_uri=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
+				$html .= '<p><a href="bin/' . $id . '">View ' . $id . '</a>' . '</p>';	
 				send_html($html, $doc->status);
 				break;
 			

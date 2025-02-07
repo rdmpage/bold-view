@@ -276,7 +276,8 @@ function map_search(geo, filter = '') {
 					
 					html += '<div class="media-body">';
 					html += '<h3 class="media-title">';
-					html += '<a href="?record=' + data.hits[i].processid + '">';
+					//html += '<a href="?record=' + data.hits[i].processid + '">';
+					html += '<a href="record/' + data.hits[i].processid + '">';
 					html += data.hits[i].processid;
 					html += '</a>';
 					html += '</h3>';
