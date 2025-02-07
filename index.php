@@ -243,9 +243,10 @@ function display_barcode($id)
 		echo '<h3>Related barcodes</h3>
 	 	<div id="output" class="tree-table"></div>';     
 		
+		/*
 		echo '<h3>Alignment</h3>
 	 	<div id="alignment" class="alignment"></div>';     
-		
+		*/
 		
 		echo '</div> <!-- close main -->';
 		
