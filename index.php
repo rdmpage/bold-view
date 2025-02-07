@@ -286,7 +286,7 @@ echo '<script>
 		
 		
 		related("' . urlencode($id) . '");
-		alignment("' . urlencode($id) . '");
+		/* alignment("' . urlencode($id) . '"); */
 	</script>';	
 		
 		
