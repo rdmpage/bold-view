@@ -25,7 +25,9 @@ function parse_filter_url_parameter($filter_string)
 }
 
 //----------------------------------------------------------------------------------------
-function filters_to_sql($filters)
+// Convert filters to SQL, if additional is true we use AND as a prefix as filters
+// are in addition to other parts of the WHERE clause
+function filters_to_sql($filters, $additional = true)
 {
 	$sql = '';
 
@@ -47,7 +49,12 @@ function filters_to_sql($filters)
 			}
 		}
 		
-		$sql .= ' AND ' . join(' AND ', $sql_filters);
+		if ($additional)
+		{
+			$sql .= ' AND';
+		}
+		
+		$sql .= ' ' . join(' AND ', $sql_filters);
 	}
 
 	return $sql;

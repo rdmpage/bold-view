@@ -23,3 +23,8 @@ RewriteRule map$ ?map [NC,L]
 # blast
 
 RewriteRule blast$ ?blast [NC,L]
+
+# taxonomy
+
+RewriteRule taxon/id/(\d+)$ ?taxonid=$1 [NC,L]
+

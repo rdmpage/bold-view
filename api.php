@@ -467,6 +467,92 @@ function display_geojson($geojson, $filter, $limit, $callback)
 }
 
 //----------------------------------------------------------------------------------------
+// Get information on a taxon 
+function display_taxon_from_id ($taxid, $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_taxon_from_taxid($taxid);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+//----------------------------------------------------------------------------------------
+// Get information on a taxon 
+function display_taxon_from_name ($name, $rank = '', $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_taxon_from_name($name, $rank);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+//----------------------------------------------------------------------------------------
+// Get paged list of barcodes
+function display_paged_barcodes ($page_start = 0, $page_size = 100, $filter = '', $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_paged_barcodes($page_start, $page_size, $filter);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+
+//----------------------------------------------------------------------------------------
+// Get pages list of images
+function display_paged_images ($page_start = 0, $page_size = 100, $filter = '', $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_paged_images($page_start, $page_size, $filter);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+
+//----------------------------------------------------------------------------------------
 function main()
 {
 	global $config;
@@ -626,6 +712,65 @@ function main()
 		}
 	}
 	
+	// taxonomy
+	if (!$handled)
+	{	
+		if (isset($_GET['taxonid']))
+		{	
+			$taxid = $_GET['taxonid'];
+			display_taxon_from_id($taxid, $callback);
+			$handled = true;
+		}
+	}
+
+	if (!$handled)
+	{	
+		if (isset($_GET['taxonname']))
+		{	
+			$name = $_GET['taxonname'];
+			$rank = '';
+			if (isset($_GET['rank']))
+			{
+				$rank = $_GET['rank'];
+			}
+			display_taxon_from_name($name, $rank, $callback);
+			$handled = true;
+		}
+	}
+	
+	// dataset
+	if (!$handled)
+	{	
+		$page = 0;
+		if (isset($_GET['page']))
+		{	
+			$page = $_GET['page'];
+		}	
+		
+		$page_size = 100;
+		
+		$offset = $page * $page_size;
+	
+		if (isset($_GET['recordset']))
+		{	
+			$filter = 'recordset:' . $_GET['recordset'];
+			
+			if (isset($_GET['images']))
+			{
+				display_paged_images($offset, 100, $filter, $callback);				
+				$handled = true;
+			}
+			
+			if (!$handled)
+			{			
+				// list of barcodes
+				display_paged_barcodes($offset, 100, $filter, $callback);
+				$handled = true;
+			}
+		}
+	}
+	
+		
 	// POST
 	// Larger items, such as a sequence to BLAST or a set of records to work with
 	if (!$handled)

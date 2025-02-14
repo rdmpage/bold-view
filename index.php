@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 require_once (dirname(__FILE__) . '/config.inc.php');
 
 require_once (dirname(__FILE__) . '/core.php');
-//require_once (dirname(__FILE__) . '/taxonomy/taxonomy.php');
+require_once (dirname(__FILE__) . '/taxonomy/taxonomy.php');
 
 //----------------------------------------------------------------------------------------
 function html_start()
@@ -80,7 +80,7 @@ require_once (dirname(__FILE__) . '/license.css.inc.php');
 require_once (dirname(__FILE__) . '/media.css.inc.php');
 require_once (dirname(__FILE__) . '/nav.css.inc.php');
 require_once (dirname(__FILE__) . '/panel.css.inc.php');
-//require_once (dirname(__FILE__) . '/taxonomy.css.inc.php');
+require_once (dirname(__FILE__) . '/taxonomy.css.inc.php');
 require_once (dirname(__FILE__) . '/treetable.css.inc.php');
 
 echo '</style>' . "\n";
@@ -100,7 +100,7 @@ echo '</script>' . "\n";
 	echo '<nav>
 	<ul>
 		<li><a href=".">Home</a></li>
-		<!-- <li><a href="?taxon=713">Taxonomy</a></li> -->
+		<li><a href="taxon/id/713">Taxonomy</a></li>
 		<li><a href="map">Map</a></li>
 		<li><a href="blast">BLAST</a></li>
 	</ul>
@@ -118,30 +118,55 @@ function html_end()
 }
 
 //----------------------------------------------------------------------------------------
-function default_display()
+// Home page, or badness happened
+function default_display($error_msg = '')
 {
 	html_start();
 
 	echo '<div class="main">';
 	
-	echo '<h1>BOLD View</h1>';
-	
-	echo '<p>BOLD View is an tool to explore DNA barcode data.</p>';
-	
-	echo '<h2>Starting points</h2>';
-	
-	echo '<ul>';
-	echo '<li>A browseable <a href="map">map</a> of barcodes.</li>';
-	echo '<li>Find barcodes that <a href="blast"> match</a> a sequence using vector search.</li>';
-	echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
-	echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
-	
-	
-	echo '</ul>';
+	if ($error_msg != '')
+	{
+		echo '<div><strong>Error!</strong> ' . $error_msg . '</div>';
+	}
+	else
+	{
+		echo '<h1>BOLD View</h1>';
+		
+		echo '<p>BOLD View is an tool to explore DNA barcode data.</p>';
+		
+		echo '<h2>Starting points</h2>';
+		
+		echo '<ul>';
+		echo '<li>A browseable <a href="map">map</a> of barcodes.</li>';
+		echo '<li>Find barcodes that <a href="blast"> match</a> a sequence using vector search.</li>';
+		echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
+		echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
+		echo '<li>View a barcode for a gecko <i>Tropiocolotes tripolitanus</i> with multiple BINs <a href="record/REWSS381-22">REWSS381-22</a></li>';
+		echo '</ul>';
+	}
 	
 	echo '</div>';
 
 	html_end();	
+}
+
+//----------------------------------------------------------------------------------------
+// parse a "green genes-style rank__name string and convert to URL parameters"
+function rank_prefix_name_to_url($string)
+{
+	if (preg_match('/([a-z]+)__([A-Z].*)/', $string, $m))
+	{
+		$url = '?taxonname=' . urlencode($m[2]) . '&rank=' . urlencode($m[1]);
+	}
+	else
+	{
+		// shouldn't happen
+		$url = '?taxonname=' . urlencode($string);
+	}
+	
+	return $url;
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -184,7 +209,16 @@ function display_barcode($id)
 				echo '<ul>';
 				foreach ($doc->lineage as $taxon)
 				{
-					echo '<li>' . $taxon . '</li>';
+					//echo '<li>' . $taxon . '</li>';
+					
+					if (preg_match('/([a-z]+)__([A-Z].*)/', $taxon, $m))
+					{
+						echo '<li>';
+						echo '<a href="' . rank_prefix_name_to_url($taxon) . '">';
+						echo $taxon;
+						echo '</a>';
+						echo '</li>';
+					}
 				}
 				echo '</ul>';
 			}
@@ -243,10 +277,10 @@ function display_barcode($id)
 		echo '<h3>Related barcodes</h3>
 	 	<div id="output" class="tree-table"></div>';     
 		
-		/*
+		
 		echo '<h3>Alignment</h3>
 	 	<div id="alignment" class="alignment"></div>';     
-		*/
+		
 		
 		echo '</div> <!-- close main -->';
 		
@@ -287,7 +321,7 @@ echo '<script>
 		
 		
 		related("' . urlencode($id) . '");
-		/* alignment("' . urlencode($id) . '"); */
+		alignment("' . urlencode($id) . '");
 	</script>';	
 		
 		
@@ -320,6 +354,7 @@ function make_graph($value_counts)
 				$node = new stdclass;
 				$node->id = count($graph);
 				$node->label = $item;
+				$node->url = rank_prefix_name_to_url($item);
 				$node->edges = array();
 				$graph[$node->id] = $node;				
 				$node_lookup[$item] = $node->id;
@@ -362,23 +397,29 @@ function make_graph($value_counts)
 	foreach ($graph as $node)
 	{
 		$label = $node->label;
-		
-	
-		$dot .= 'node [fontsize="10,"';
+			
+		$dot .= 'node [fontsize="10, "';
 		
 		if (isset($node->count))
 		{
 			$label .= ' (' . $node->count . ')';
 			
-			$dot .= 'fillcolor="yellow",style="filled"';
+			$dot .= 'fillcolor="yellow", style="filled", ';
 		}
 		else
 		{
-			$dot .= 'fillcolor="white",style="filled"';
+			$dot .= 'fillcolor="white",style="filled", ';
 		}
 		
 		
-		$dot .= 'label="' . addslashes($label) . '"] ' . $node->id . ";\n";
+		$dot .= 'label="' . addslashes($label) . '"';
+		
+		if (isset($node->url))
+		{
+			$dot .= ', URL="' . $node->url . '"';
+		}
+		
+		$dot .= '] ' . $node->id . ";\n";
 	}
 		
 	foreach ($graph as $node)
@@ -539,16 +580,27 @@ function display_map ($filter = "")
 	html_end();		
 }
 
-/*
+
 //----------------------------------------------------------------------------------------
-function display_taxonomy ($taxon = 713)
+function display_taxonomy ($taxon = 713, $k = 40)
 {
 	html_start();
+	
+	echo '<script>
+	var curnode_id = \'' . $taxon . '\';	
+	</script>';
 
-	echo '<div class="main">';
+	echo '<div class="content">';
 	
 	echo '<div class="tree">';
-	echo get_taxonomy_subtree($taxon, 40);
+	echo get_taxonomy_subtree($taxon, $k);
+	echo '</div>';
+	
+	echo '<div class="taxonomy">';
+	
+	echo '<div id="taxon_info"></div>';
+	echo '<div id="wiki"></div>';
+	
 	echo '</div>';
 	
 	echo '</div>';
@@ -558,19 +610,126 @@ function display_taxonomy ($taxon = 713)
 	// call this to reload page with a new taxon as the focus when user double clicks 
 	// on a name
 	function taxon_focus(id) {
-		window.location.href = "?taxon=" + id;
+		window.location.href = "taxon/id/" + id;
 	}
 
 	function taxon_info(id) {
-		//alert(id);
+		// toggle selection of node in tree
+		document.getElementById("node" + curnode_id).classList.remove("active");	
+		curnode_id = id;
+		document.getElementById("node" + curnode_id).classList.add("active");	
+
+		// display info on taxon
+		document.getElementById("taxon_info").innerHTML = "";
+		document.getElementById("wiki").innerHTML = "";
+		
+		var url = "api.php?taxonid=" + id;
+		
+		fetch(url).then(
+			function(response){
+				if (response.status != 200) {
+					console.log("Looks like there was a problem. Status Code: " + response.status);
+					document.getElementById("info").innerHTML = "404";
+					return;
+				}
+				
+				response.json().then(function(data) {					
+					//var html = JSON.stringify(data);
+					
+					var html = "<h2>" + data.name + "</h2>";
+					document.getElementById("taxon_info").innerHTML = html;
+				});
+				
+		});
+		
+		// wiki-based information
+		
+		// BOLD taxonomy to Wikipedia via Wikidata
+		var sparql = `SELECT *
+WHERE
+{
+  ?item wdt:P3606 "` + id + `" .
+  ?wikipedia_en schema:about ?item .
+  ?wikipedia_en schema:isPartOf <https://en.wikipedia.org/> .
+  BIND( REPLACE( STR(?wikipedia_en),"https://en.wikipedia.org/wiki/","" ) AS ?enwiki) .
+}`;
+		
+		url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=" + encodeURIComponent(sparql);
+		
+		fetch(url, {
+			method: "GET",
+    		headers: {
+        	"Accept": "application/json",
+    		}		
+		}).then(
+			function(response){
+				if (response.status != 200) {
+					console.log("Looks like there was a problem. Status Code: " + response.status);
+					document.getElementById("info").innerHTML = "404";
+					return;
+				}
+				
+				response.json().then(function(data) {
+					
+					if (data.results.bindings) {
+						var enwiki = data.results.bindings[0].enwiki.value;
+						//document.getElementById("wiki").innerHTML = enwiki;
+						
+						// get summary from dbpedia
+						dbpedia_summary(enwiki, "wiki");
+					}
+					
+				});
+				
+		});
+		
 	}
 	
-	echo </script>';
+	function dbpedia_summary(wikipedia, element_id) {
+		var url = "dbpedia_proxy.php?query=" + encodeURIComponent("DESCRIBE <http://dbpedia.org/resource/" + wikipedia + ">");
+		
+		fetch(url).then(
+			function(response){
+				if (response.status != 200) {
+					console.log("Looks like there was a problem. Status Code: " + response.status);
+					document.getElementById("info").innerHTML = "404";
+					return;
+				}
+				
+				response.json().then(function(data) {
+					
+					var html = "";
+					for (var i in data) {
+						if (data[i]["http://www.w3.org/2000/01/rdf-schema#comment"]) {	
+							for (var j in data[i]["http://www.w3.org/2000/01/rdf-schema#comment"])	{	  			
+								if (data[i]["http://www.w3.org/2000/01/rdf-schema#comment"][j].lang == "en") {
+									html = 
+									data[i]["http://www.w3.org/2000/01/rdf-schema#comment"][j].value 
+									+ " " 
+									+ "(from <a href=\"https://en.wikipedia.org/wiki/" + wikipedia + "\" target=\"_new\">Wikipedia</a>)"
+									;
+								}
+							}
+						}
+					}
+					if (html != "") {
+					 document.getElementById(element_id).innerHTML = html;
+					}
+					
+				});
+				
+		});
+	}	
+	
+	// information 
+	taxon_info(curnode_id);
+	
+	</script>';
 	
 
 	html_end();		
 }	
-*/
+
 
 //----------------------------------------------------------------------------------------
 function display_blast()
@@ -665,6 +824,14 @@ function main()
 		exit(0);
 	}
 	
+	// Error message
+	if (isset($_GET['error']))
+	{	
+		$error_msg = $_GET['error'];		
+		default_display($error_msg);
+		exit(0);			
+	}	
+	
 	// be flexible in input, either processid, barcode, or record
 	if (!$handled)
 	{		
@@ -719,15 +886,45 @@ function main()
 	
 	if (!$handled)
 	{
-		if (isset($_GET['taxon']))
+		if (isset($_GET['taxonid']))
 		{
-			$taxon = $_GET['taxon'];
+			$taxonid = $_GET['taxonid'];
 							
-			//display_taxonomy($taxon);
+			display_taxonomy($taxonid);
 			$handled = true;
 		
 		}
 	}
+	
+	if (!$handled)
+	{
+		if (isset($_GET['taxonname']))
+		{
+			$name = $_GET['taxonname'];
+			$rank = '';
+			if (isset($_GET['rank']))
+			{
+				$rank = $_GET['rank'];
+			}
+			
+			$taxon = get_taxon_from_name($name, $rank);
+			
+			if ($taxon)
+			{							
+				display_taxonomy($taxon->id, 20);
+			}
+			else
+			{
+				// Oops
+				// bounce
+				header('Location: ?error=Taxon "' . $name . '" not found' . "\n\n");
+				exit(0);
+			}
+			$handled = true;
+		
+		}
+	}
+	
 	
 	
 	if (!$handled)

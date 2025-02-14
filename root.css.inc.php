@@ -32,14 +32,16 @@
 	
 	/* phylogeny */
 	--phylogeny: black;
+	--bin-a: rgb(50,4,172);
 	
+	/* taxonomy */
 	--tree-selected-bg: orange;
 	--tree-selected-color:black;
 	
 	--tree-classification-border: 1px solid black;
 	--tree-classification-bg: none;
-	
-	--bin-a: rgb(50,4,172);
+
+	--taxonomy-width: 300px;
 
 	
 }
@@ -86,6 +88,9 @@
 	
 	/* phylogeny */
 	--phylogeny: #BB86FC;
+	--bin-a: rgb(50,4,172);
+	
+	/* taxonomy */
 	
 	--tree-selected-bg: rgb(68,8,201);
 	--tree-selected-color:white;
@@ -93,7 +98,7 @@
 	--tree-classification-border: 1px solid rgb(50,4,172);
 	--tree-classification-bg: rgb(50,4,172);
 	
-	--bin-a: rgb(50,4,172);
+	--taxonomy-width: 300px;
 	
 	/* 
 		400 rgb(117,41,243); 
@@ -102,6 +107,9 @@
 		700 rgb(50,4,172);
 	*/
 	
+	
+	
+
 	
 
   }

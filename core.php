@@ -52,9 +52,7 @@ function get_nj_tree($obj, $root = true)
 function pq_record_to_obj($row)
 {
 	$hit = new stdclass;
-			
-	$hit->processid 	  = $row['processid'];
-	
+				
 	foreach ($row as $k => $v)
 	{
 		if ($v)
@@ -111,6 +109,14 @@ function pq_record_to_obj($row)
 				// lineage as array
 				case 'lineage':
 					$hit->lineage = explode(';', $row['lineage']);
+					break;
+					
+				// taxon
+				case 'id':				
+				case 'anc_id':				
+				case 'external_id':				
+				case 'name':				
+					$hit->{$k} = $v;
 					break;
 					
 				default:
@@ -897,5 +903,134 @@ LIMIT 10
 
 	return $obj;	
 }
+
+//----------------------------------------------------------------------------------------
+function get_taxon_from_taxid($taxid)
+{
+	global $db;
+	
+	$obj = null;
+	
+	$sql = "SELECT * FROM boldtaxonomy WHERE id='" . $taxid . "' LIMIT 1";
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		$obj = pq_record_to_obj($row);
+	}
+	
+	return $obj;
+}
+
+//----------------------------------------------------------------------------------------
+// Very crude taxon search
+function get_taxon_from_name($name, $rank = '')
+{
+	global $db;
+	
+	$obj = null;
+	
+	$sql = "SELECT * FROM boldtaxonomy WHERE name='" . str_replace("'", "''", $name) . "' LIMIT 1";
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		$obj = pq_record_to_obj($row);
+	}
+	
+	return $obj;
+}
+
+//----------------------------------------------------------------------------------------
+// Get paged list of barcodes with optional filter
+function get_paged_barcodes($page_start = 0, $page_size = 100, $filter_string ='')
+{
+	global $db;
+	
+	$obj = new stdclass;
+	$obj->offset = $page_start;
+	$obj->size = $page_size;
+	
+	$filters = array();
+	if ($filter_string != '')
+	{
+		$filters = parse_filter_url_parameter($filter_string);
+		$obj->filters = $filters;
+	}	
+	
+	// List of records 
+	$obj->hits = array();
+	
+	$sql = "SELECT *
+	FROM boldmeta";
+	
+	$sql .= ' WHERE' . filters_to_sql($filters, false);
+	
+	$sql .= " LIMIT $page_size";
+	
+	if ($page_start !== 0)
+	{
+		$sql .= " OFFSET $page_start";
+	}
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		$hit = pq_record_to_obj($row);
+		$obj->hits[] = $hit;
+	}
+	
+	$obj->hits = decorate_hits_with_images($obj->hits);	
+
+	return $obj;	
+}
+
+//----------------------------------------------------------------------------------------
+// Get paged list of barcodes with optional filter
+function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
+{
+	global $db;
+	
+	$obj = new stdclass;
+	$obj->offset = $page_start;
+	$obj->size = $page_size;
+	
+	$filters = array();
+	if ($filter_string != '')
+	{
+		$filters = parse_filter_url_parameter($filter_string);
+		$obj->filters = $filters;
+	}	
+	
+	// List of records 
+	$obj->hits = array();
+	
+	$sql = "SELECT boldimage.processid,	url, title, view, mimetype, clean_license
+	FROM boldmeta
+	INNER JOIN boldimage USING(processid)";
+	
+	$sql .= ' WHERE' . filters_to_sql($filters, false);
+	
+	$sql .= " LIMIT $page_size";
+	
+	if ($page_start !== 0)
+	{
+		$sql .= " OFFSET $page_start";
+	}
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		$hit = pq_record_to_obj($row);
+		$obj->hits[] = $hit;
+	}
+
+	return $obj;	
+}
+
 
 ?>
