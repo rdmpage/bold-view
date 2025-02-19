@@ -82,4 +82,6 @@
 .taxonomy {
   width:calc(100vw - var(--taxonomy-width));
   overflow-y:auto;
+  box-sizing:border-box; /* https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing */
+  padding:1em;
 }
