@@ -134,7 +134,7 @@ function add_data(data) {
 	map.fitBounds(bounds);
 }
 
-function create_large_map(id, filter = '') {
+function create_large_map(id, controls = true, filter = '') {
 	map = new L.Map(id);
 
 	// create the tile layer with correct attribution
@@ -167,51 +167,49 @@ function create_large_map(id, filter = '') {
 	map.addLayer(dots);	
 	
 	// controls to draw polygons
-	
-	drawnItems = new L.FeatureGroup();
-	map.addLayer(drawnItems);			
-	
-	var drawControl = new L.Control.Draw({
-		position: 'topleft',
-		draw: {
-			marker: false, // turn off marker
-			polygon: {
-				shapeOptions: {
-					color: 'purple'
+	if (controls) {
+		drawnItems = new L.FeatureGroup();
+		map.addLayer(drawnItems);			
+		
+		var drawControl = new L.Control.Draw({
+			position: 'topleft',
+			draw: {
+				marker: false, // turn off marker
+				polygon: {
+					shapeOptions: {
+						color: 'purple'
+					},
+					allowIntersection: false,
+					drawError: {
+						color: 'orange',
+						timeout: 1000
+					},
+					showArea: true,
+					metric: false,
+					repeatMode: true
 				},
-				allowIntersection: false,
-				drawError: {
-					color: 'orange',
-					timeout: 1000
+				polyline: false,
+				rect: {
+					shapeOptions: {
+						color: 'green'
+					},
 				},
-				showArea: true,
-				metric: false,
-				repeatMode: true
+				circle: false
 			},
-			polyline: false,
-			rect: {
-				shapeOptions: {
-					color: 'green'
-				},
-			},
-			circle: false
-		},
-		edit: {
-			featureGroup: drawnItems
-		}
-	});
-	map.addControl(drawControl);	
-
+			edit: {
+				featureGroup: drawnItems
+			}
+		});
+		map.addControl(drawControl);	
+		map.on('draw:created', function (e) {
+			var type = e.layerType,
+				layer = e.layer;
 	
-	map.on('draw:created', function (e) {
-		var type = e.layerType,
-			layer = e.layer;
-
-		drawnItems.addLayer(layer);
-		map_search(layer.toGeoJSON(), filter);
-	
-	});						
-	
+			drawnItems.addLayer(layer);
+			map_search(layer.toGeoJSON(), filter);
+		
+		});						
+	}	
 
 }
 
