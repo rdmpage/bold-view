@@ -186,15 +186,13 @@ if (1)
 	
 	$sql = "SELECT ST_AsGeoJSON(boldvector.coord) AS pt 
 	FROM boldvector 
-	-- INNER JOIN boldmeta USING(processid)
+	INNER JOIN boldmeta USING(processid)
 	WHERE ST_Intersects(boldvector.coord,
 	  ST_MakeEnvelope(" . join(',', $values) . "))";
 	  
 	$sql .= filters_to_sql($filters);
 	  
 	$sql .= " LIMIT " . LIMIT . ";";
-	
-	//echo $sql;
 
 	$result = pg_query($db, $sql);
 	
