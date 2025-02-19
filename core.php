@@ -1032,5 +1032,36 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 	return $obj;	
 }
 
+//----------------------------------------------------------------------------------------
+// Return details on a recordset
+function get_recordset($id) 
+{
+	global $db;
+	
+	$obj = null;
+	
+	$filters = parse_filter_url_parameter("recordset:" . $id);
+	
+	$sql = "SELECT COUNT(processid) AS c FROM boldmeta";
+	$sql .= ' WHERE' . filters_to_sql($filters, false);
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result))
+	{
+		if (!$obj)
+		{
+			$obj = new stdclass;
+			$obj->id = $id;
+		}
+		
+		$obj->num_barcodes = $row['c'];
+	}
+	
+	
+	return $obj;	
+}
+
+
 
 ?>
