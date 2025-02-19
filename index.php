@@ -54,6 +54,12 @@ echo '
 	background:gray;
 }
 
+#filtered_map {
+	width:auto;
+	height:40vh;	
+	background:gray;
+}
+
 
 /* right column */
 .side {
@@ -143,6 +149,7 @@ function default_display($error_msg = '')
 		echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
 		echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
 		echo '<li>View a barcode for a gecko <i>Tropiocolotes tripolitanus</i> with multiple BINs <a href="record/REWSS381-22">REWSS381-22</a></li>';
+		echo '<li>View a BIN which includes holotype (<a href="record/PNGTY1822-15">PNGTY1822-15</a>): <a href="bin/BOLD:ACA8529">BOLD:ACA8529</a></li>';
 		echo '</ul>';
 	}
 	
@@ -574,7 +581,7 @@ function display_map ($filter = "")
 			</div>';		
  		
 	echo '<script>
-			create_large_map("map", "' . $filter . '");
+			create_large_map("map", true, "' . $filter . '");
 		</script>';
 
 	html_end();		
@@ -811,6 +818,56 @@ echo '<script>
 
 
 //----------------------------------------------------------------------------------------
+// Dataset
+function display_recordset($id)
+{
+	$doc = get_recordset($id);
+	
+	if ($doc)
+	{	
+		html_start();
+		
+		// side panel
+		echo '<div id="panel">
+<a href="javascript:close_panel()">╳</a>
+<div id="info"></div>
+</div>';
+		
+		echo '<div class="main">';
+		
+		echo '<h1>' . $doc->id . '</h1>';
+		
+		// map
+		echo '<h2>Map</h2>';
+		echo '<div id="filtered_map"></div>';
+		
+		// images
+		
+		// barcodes
+		
+		
+		echo '</div>';
+		
+		$filter = 'recordset:' . $id;
+	echo '<script>
+			create_large_map("filtered_map", false, "' . $filter . '");
+		</script>';
+		
+		
+		// scripts to support paginated browsing....
+		
+		html_end();
+	}
+	else
+	{
+		html_start();
+		echo '<h1>Error</h1>';
+		echo '<p>' . "$id not found!" . '</p>';
+		html_end();	
+	}
+}
+
+//----------------------------------------------------------------------------------------
 function main()
 {
 	global $config;
@@ -924,6 +981,17 @@ function main()
 		
 		}
 	}
+	
+	if (!$handled)
+	{
+		if (isset($_GET['recordset']))
+		{
+			$recordset = $_GET['recordset'];
+			display_recordset($recordset);
+			$handled = true;		
+		}
+	}
+	
 	
 	
 	
