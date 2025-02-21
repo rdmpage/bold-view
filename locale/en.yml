@@ -26,6 +26,13 @@ en:
     processid: Barcodes
     processid_lede: Barcode records in this BIN.
     title: BIN %s
+    view: View
+    
+  image:
+    license: License
+    processid: Barcode    
+    title: Title
+    view: View
     
   nav:
     blast: Search  
@@ -49,6 +56,7 @@ en:
     related: Related barcodes
     related_lede: Neighbour-joining tree of sequences most similar to this barcode based on shared k-mers. Position of barcode is highlighted.
     title: Barcode %s
+    view: View
     
   recordset:
     lede: A dataset comprises a set of barcodes.

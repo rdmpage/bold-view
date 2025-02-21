@@ -4,6 +4,7 @@ error_reporting(E_ALL);
 
 require_once (dirname(__FILE__) . '/api_utilities.php');
 require_once (dirname(__FILE__) . '/core.php');
+require_once (dirname(__FILE__) . '/language.php');
 
 //----------------------------------------------------------------------------------------
 function default_display()
@@ -37,12 +38,12 @@ function display_image ($id, $format = '', $callback = '')
 						case 'processid':
 						case 'title':
 						case 'view':
-							$html .= '<dt>' . $k  . '</dt>';
+							$html .= '<dt>' . get_text(['image', $k]) . '</dt>';
 							$html .= '<dd>' . $v  . '</dd>';
 							break;
 							
 						case 'clean_license':
-							$html .= '<dt>license</dt>';
+							$html .= '<dt>' . get_text(['image', 'license']) . '</dt>';
 							$html .= '<dd>';
 							
 							if (preg_match('/by|nc|nd|sa|cc0/i', $v))
@@ -118,9 +119,9 @@ function display_barcode ($id, $format = '', $callback = '')
 			case 'html':
 				$html = '';
 				$html .= '<h2>' . $id . '</h2>';
-				$html .= '<p>Summarise this barcode here</p>';	
+				//$html .= '<p>Summarise this barcode here</p>';	
 				//$html .= '<p><a href="?record=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
-				$html .= '<p><a href="record/' . $id . '">View ' . $id . '</a>' . '</p>';	
+				$html .= '<p><a href="record/' . $id . '">' . get_text(['record', 'view']) . ' ' . $id . '</a>' . '</p>';	
 				
 				if (isset($doc->images))
 				{
@@ -176,6 +177,11 @@ TTAACTTTCTTCCCACAACATTTTTTAGGATTAGCAGGAATACCACGACGATATTCAGATTATCCAGATG
 CTTATACAACTTGAAACGTAGTATCTACAATTGGTTCTTCAATTTCACTTTTAGGAATTTTATTCTTTTT
 TTATATTATTTGAGAAAGTTTAGTATCACAACGACAAGTAATTTATCCAATTCAATTATGTTCATCTATT
 GAATGATATCAAAATACTCCACCCGCTGAACATAGTTATTCTGAATTACCTCTTTTAACTAATTAA';
+
+	$reference_seq_name = 'NC_030769';
+
+	$reference_seq = 'CGAAAATGACTTTACTCAACAAATCATAAAGATATTGGAACATTATACTTCATATTTGGTATCTGAGCAGGAATAGTAGGAACATCTTTAAGACTATTAATTCGAGCAGAATTAGGCAACCCTGGGTCATTAATTGGAGACGACCAAATTTACAATACCATTGTAACAGCTCATGCTTTTATTATAATTTTTTTTATAGTTATACCTATTATAATCGGAGGATTTGGAAACTGATTAGTACCTTTAATGCTAGGAGCCCCAGACATAGCATTCCCCCGTATAAATAATATAAGATTTTGATTATTGCCCCCATCAATTACTTTACTAATTTCAAGAAGAATTGTAGAAAACGGAGCAGGAACCGGATGAACAGTTTACCCTCCTTTATCCTCTAATATCGCCCACGGGGGAAGATCAGTTGATCTAGCAATTTTTTCCCTTCATTTAGCAGGTATTTCATCAATTCTAGGAGCTATTAATTTTATTACAACAATTATTAATATACGATTAAATAATTTATCTTTTGATCAAATACCATTATTTGTCTGAGCAGTAGGAATCACAGCATTTTTATTATTATTATCACTACCTGTATTAGCAGGAGCTATTACTATATTATTAACTGACCGAAATTTAAATACATCATTTTTTGACCCAGCTGGAGGAGGGGATCCAATTCTTTATCAACACTTATTTTGATTTTTTGGTCACCCTGAAGTATACATTTTAATTTTACCAGGATTCGGTATAATTTCACATATTATTTCACAAGAAAGTGGTAAAAAAGAAACTTTCGGATGTTTAGGTATAATCTATGCTATAATAGCAATTGGTATTTTAGGATTTATTGTATGAGCTCATCACATATTTACAGTAGGTATAGATATTGATACTCGAGCCTATTTCACTTCAGCTACAATAATTATTGCTGTACCTACTGGTATTAAAATTTTTAGTTGACTAGCAACTCTTCATGGAACTCAAATTAATTATAGTCCATCAATTTTATGAAGATTAGGATTTGTATTTTTATTCACCGTAGGAGGACTAACAGGAGTTATTTTAGCCAATTCATCTATTGATATTACACTACATGATACTTATTATGTAGTAGCACATTTTCACTATGTTTTATCTATAGGAGCTGTATTTGCCATTATAGGAGGATTTATCCACTGATATCCACTATTCACAGGATTAACTATAAACCCTTACATATTAAAAATTCAATTTATAATCATATTCATTGGAGTAAACTTAACATTTTTCCCCCAACACTTTTTAGGATTAGCTGGAATACCCCGACGATACTCTGATTACCCTGACTCATACATTTCATGAAATATTGTATCATCTTTAGGATCATATATTTCACTACTAGCCGTAATGTTAATATTAATTATTATTTGAGAATCTATAATTAACCAACGTATAATTTTATTTACTTTAAATATATCATCAAATATTGAATGAATACAAAATTTACCCCCAGCTGAACATTCATATAATGAACTACCTATTTTAAGAAATNNN';
+
 
 	$doc = get_barcode_alignment($id, $reference_seq_name, $reference_seq);
 
@@ -310,9 +316,9 @@ function display_bin ($id, $format = '', $callback = '')
 			case 'html':
 				$html = '';
 				$html .= '<h2>' . $id . '</h2>';
-				$html .= '<p>Summarise this bin here</p>';			
+				//$html .= '<p>Summarise this bin here</p>';			
 				// $html .= '<p><a href="?bin_uri=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
-				$html .= '<p><a href="bin/' . $id . '">View ' . $id . '</a>' . '</p>';	
+				$html .= '<p><a href="bin/' . $id . '">' . get_text(['bin', 'view']) . ' '. $id . '</a>' . '</p>';	
 				send_html($html, $doc->status);
 				break;
 			
@@ -494,6 +500,27 @@ function display_taxon_from_name ($name, $rank = '', $callback = '')
 	$status = 404;
 	
 	$doc = get_taxon_from_name($name, $rank);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+//----------------------------------------------------------------------------------------
+// Get details for a recordset (i.e., a dataset)
+function display_recordset($id, $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_recordset($id);
 	
 	if ($doc)
 	{
@@ -741,32 +768,49 @@ function main()
 	// dataset
 	if (!$handled)
 	{	
-		$page = 0;
-		if (isset($_GET['page']))
-		{	
-			$page = $_GET['page'];
-		}	
-		
-		$page_size = 100;
-		
-		$offset = $page * $page_size;
-	
 		if (isset($_GET['recordset']))
 		{	
-			$filter = 'recordset:' . $_GET['recordset'];
+			$recordset = $_GET['recordset'];		
+		
+			// paged result for recordset
+			$page = 0;
+			if (isset($_GET['page']))
+			{	
+				$page = $_GET['page'];
+			}	
 			
-			if (isset($_GET['images']))
+			$page_size = 100;
+			
+			$offset = $page * $page_size;
+		
+			$filter = 'recordset:' . $recordset;
+			
+			if (!$handled)
 			{
-				display_paged_images($offset, 100, $filter, $callback);				
-				$handled = true;
+				if (isset($_GET['images']))
+				{
+					display_paged_images($offset, 100, $filter, $callback);				
+					$handled = true;
+				}
 			}
 			
 			if (!$handled)
+			{	
+				if (isset($_GET['records']))
+				{						
+					// list of barcodes
+					display_paged_barcodes($offset, 100, $filter, $callback);
+					$handled = true;
+				}
+			}
+
+			if (!$handled)
 			{			
-				// list of barcodes
-				display_paged_barcodes($offset, 100, $filter, $callback);
+				// metadata for recordset
+				display_recordset($recordset, $callback);
 				$handled = true;
 			}
+			
 		}
 	}
 	
