@@ -111,9 +111,7 @@ function add_data(data) {
 	maxx = -180;
 	maxy = -90;
 	
-	for (var i in data.features) {
-	   data.features[i].geometry
-	   
+	for (var i in data.features) {	   
 		minx = Math.min(minx, data.features[i].geometry.coordinates[0]);
 		miny = Math.min(miny, data.features[i].geometry.coordinates[1]);
 		maxx = Math.max(maxx, data.features[i].geometry.coordinates[0]);
@@ -211,6 +209,43 @@ function create_large_map(id, controls = true, filter = '') {
 		});						
 	}	
 
+}
+
+// set bounds of map to enclose polygon
+function map_fit_bounds(s) {
+
+	var polygon = JSON.parse(s);
+	
+	//console.log(JSON.stringify(polygon));
+
+	var minx = 180;
+	var miny = 90;
+	var maxx = -180;
+	var maxy = -90;
+	
+	for (var i in polygon.coordinates[0]) {
+		minx = Math.min(minx, polygon.coordinates[0][i][0]);
+		miny = Math.min(miny, polygon.coordinates[0][i][1]);
+		maxx = Math.max(maxx, polygon.coordinates[0][i][0]);
+		maxy = Math.max(maxy, polygon.coordinates[0][i][1]);
+		
+		// console.log(polygon.coordinates[0][i]);
+	}
+	var min_size = 2;
+	
+	if (maxx - minx < min_size) {
+		minx -= min_size/2;
+		maxx += min_size/2;
+	}
+	if (maxy - miny < min_size) {
+		miny -= min_size/2;
+		maxy += min_size/2;
+	}
+	
+	
+
+ 	bounds = L.latLngBounds(L.latLng(miny,minx), L.latLng(maxy,maxx));
+	map.fitBounds(bounds);
 }
 
 function map_search(geo, filter = '') {
