@@ -4,7 +4,7 @@
   	--nav-height: 36px;
   	--side-width: 30vw;
 
-	--text: #000;
+	--text: #333;
 	--bg: #fff;
 	
 	--panel-bg: #fff;

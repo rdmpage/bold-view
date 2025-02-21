@@ -865,6 +865,7 @@ function get_geo($geometry, $filter_string ='', $limit = 100)
 	
 	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point 
 	FROM boldvector 
+	INNER JOIN boldmeta USING(processid)
 	WHERE ST_Within(boldvector.coord, ST_GeomFromGeoJSON('" . json_encode($geometry) . "'))";
 	
 	$sql .= filters_to_sql($filters);
@@ -1040,6 +1041,7 @@ function get_recordset($id)
 	
 	$obj = null;
 	
+	// how many barcodes?
 	$filters = parse_filter_url_parameter("recordset:" . $id);
 	
 	$sql = "SELECT COUNT(processid) AS c FROM boldmeta";
@@ -1055,9 +1057,28 @@ function get_recordset($id)
 			$obj->id = $id;
 		}
 		
-		$obj->num_barcodes = $row['c'];
+		$obj->num_barcodes = (Integer)$row['c'];
 	}
 	
+	// geographic extent
+	$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
+	FROM boldvector 
+	INNER JOIN boldmeta USING(processid)
+	WHERE bold_recordset_code_arr @> ARRAY['$id']";
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result))
+	{
+		if (!$obj)
+		{
+			$obj = new stdclass;
+			$obj->id = $id;
+		}
+		
+		// schema.org term
+		$obj->spatialCoverage = $row['envelope'];
+	}
 	
 	return $obj;	
 }
