@@ -7,6 +7,10 @@ body {
  	color: var(--text);  	
 }
 
+p {
+	font-size:0.8em;
+}
+
 /* based on https://bloycey.medium.com/how-to-style-dl-dt-and-dd-html-tags-ced1229deda0 */
 dl {
   display: grid;
@@ -15,6 +19,7 @@ dl {
 }
 dt {
   text-align:right;
+  color:#444;
 }
 dd {
   margin: 0;
