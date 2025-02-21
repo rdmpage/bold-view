@@ -19,6 +19,8 @@ RewriteRule bin/(.*)$ ?bin_uri=$1 [NC,L]
 # map
 
 RewriteRule map$ ?map [NC,L]
+RewriteRule map/filter=(.*) ?map&filter=$1 [NC,L]
+
 
 # blast
 
@@ -27,4 +29,9 @@ RewriteRule blast$ ?blast [NC,L]
 # taxonomy
 
 RewriteRule taxon/id/(\d+)$ ?taxonid=$1 [NC,L]
+
+# recordset
+
+RewriteRule recordset/(.*)$ ?recordset=$1 [NC,L]
+
 
