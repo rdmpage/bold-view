@@ -408,7 +408,15 @@ class PhylogramTreeDrawer extends RectangleTreeDrawer
 	function CalcInternal($p)
 	{
 		$pt = array();
-		$pt['x'] = $this->left + ($p->GetAttribute('path_length') / $this->max_path_length) * $this->width;
+		
+		if ( $this->max_path_length)
+		{
+			$pt['x'] = $this->left + ($p->GetAttribute('path_length') / $this->max_path_length) * $this->width;
+		}
+		else
+		{
+			$pt['x'] = $this->left ;
+		}
     	
 		$pl = $p->GetChild()->GetAttribute('xy');
 		$pr = $p->GetChild()->GetRightMostSibling()->GetAttribute('xy');
@@ -427,7 +435,14 @@ class PhylogramTreeDrawer extends RectangleTreeDrawer
 		$this->leaf_count++;
 		
 		// cladogram
-		$pt['x'] = $this->left + ($p->GetAttribute('path_length') / $this->max_path_length) * $this->width;
+		if ( $this->max_path_length)
+		{
+			$pt['x'] = $this->left + ($p->GetAttribute('path_length') / $this->max_path_length) * $this->width;
+		}
+		else
+		{
+			$pt['x'] = $this->left ;
+		}
 		
 		$p->SetAttribute('xy', $pt);
 		
