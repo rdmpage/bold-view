@@ -1,0 +1,58 @@
+en:
+  language: English
+  locale: "en_EN"
+  "true": "Yes"
+  "false": "No"
+  
+  blast:
+    instruction: "Enter a DNA sequence:"
+    lede: Search for the nearest sequences in k-mer vector space and build a neighbour-joining tree.
+    results: Results
+    search: Search
+    title: Sequence search
+    
+  bin:
+    identification: Identifications
+    identification_lede: Taxonomic names assigned to barcoded specimens in this BIN.
+    images: Images
+    images_lede: Images of barcoded specimens in this BIN.
+    insdc_acs: GenBank
+    insdc_acs_lede: GenBank accession numbers for DNA barcodes in this BIN.
+    lede: A Barcode Index Number (BIN) represents a set of barcodes that cluster together. A BIN is expected to be equivalent to a species.
+    lineage: Taxonomy
+    lineage_lede: Taxonomic hierarchy of names associated with this BIN. Names assigned to barcode specimens are highlighted.
+    map: Map
+    map_lede: Localities for DNA barcodes in this BIN.
+    processid: Barcodes
+    processid_lede: Barcode records in this BIN.
+    title: BIN %s
+    
+  nav:
+    blast: Search  
+    home: Home
+    map: Map
+    taxonomy: Taxonomy
+    
+  record:
+    bin_uri: BIN ID
+    details: Details
+    details_lede: Data for this barcode.
+    identification: Identification
+    images: Images
+    images_lede: Images of sample.
+    insdc_acs: Genbank
+    lede: A barcode is a DNA sequence obtained from a sample, typically an individual organism.
+    lineage: Taxonomy
+    lineage_lede: Taxonomic classification of barcode.    
+    map: Map
+    map_lede: Where barcode was sampled.
+    related: Related barcodes
+    related_lede: Neighbour-joining tree of sequences most similar to this barcode based on shared k-mers. Position of barcode is highlighted.
+    title: Barcode %s
+    
+  recordset:
+    lede: A dataset comprises a set of barcodes.
+    map: Map
+    map_lede: Localities of barcodes in this dataset.
+    title: Dataset %s
+   

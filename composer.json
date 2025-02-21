@@ -7,5 +7,7 @@
             "email": "rdmpage@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "symfony/yaml": "^5.4"    
+    }
 }

@@ -23,4 +23,7 @@ else
 	$config['web_root']		= '/';
 }
 
+// Default language is English
+$config['lang'] = 'en';
+
 ?>

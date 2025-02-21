@@ -3,12 +3,56 @@
 error_reporting(E_ALL);
 
 require_once (dirname(__FILE__) . '/config.inc.php');
-
 require_once (dirname(__FILE__) . '/core.php');
 require_once (dirname(__FILE__) . '/taxonomy/taxonomy.php');
 
+require_once(__DIR__ . '/vendor/autoload.php');
+use Symfony\Component\Yaml\Yaml;
+
+$filename = 'locale/' . $config['lang'] . '.yml';
+
+$text_strings = Yaml::parseFile($filename);
+
+function get_text($key)
+{
+	global $config;
+	global $text_strings;
+	
+	$text = '';
+	$found = false;
+	
+	$root = $text_strings[$config['lang']];
+	
+	//print_r($root);
+	
+	foreach ($key as $k)
+	{
+		if (isset($root[$k]))
+		{
+			if (is_array($root[$k]))
+			{
+				$root = $root[$k];
+			}
+			else
+			{
+				$found = true;
+				$text = $root[$k];
+			}
+		}
+	}
+	
+	if (!$found)
+	{
+		$text = "Text [" . join(", ", $key) . "] not found!";
+	}
+	
+	return $text;
+}
+
+
+
 //----------------------------------------------------------------------------------------
-function html_start()
+function html_start($title = '')
 {
 	global $config;
 	
@@ -21,7 +65,12 @@ function html_start()
 	echo '<!-- base -->
     	<base href="' . $config['web_root'] . '" /><!--[if IE]></base><![endif]-->';
     	
-    echo '<title>' . $config['site_name'] . '</title>';   	
+    if ($title == '')
+    {
+    	$title = $config['site_name'];
+    }
+    	
+    echo '<title>' . $title . '</title>';   	
 		
 	require_once(dirname(__FILE__) . '/map.inc.php');
 	
@@ -105,10 +154,10 @@ echo '</script>' . "\n";
 	
 	echo '<nav>
 	<ul>
-		<li><a href=".">Home</a></li>
-		<li><a href="taxon/id/713">Taxonomy</a></li>
-		<li><a href="map">Map</a></li>
-		<li><a href="blast">BLAST</a></li>
+		<li><a href=".">' . get_text(['nav', 'home']) . '</a></li>
+		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
+		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
+		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
 	</ul>
 	</nav>';
 	
@@ -182,8 +231,10 @@ function display_barcode($id)
 	$doc = get_barcode($id);
 	
 	if ($doc)
-	{
-		html_start();
+	{	
+		$title = sprintf(get_text(['record', 'title']), $doc->processid);
+	
+		html_start($title);
 		
 		// side panel
 		echo '<div id="panel">
@@ -193,17 +244,20 @@ function display_barcode($id)
 		
 		echo '<div class="main">';
 		
-		echo '<h1>' . $doc->processid . '</h1>';
+		echo '<h1>' . $title . '</h1>';
+		echo '<p>' . get_text(['record', 'lede']) . '</p>';
 		
 		$keys = array('identification', 'insdc_acs', 'bin_uri');
 		
-		echo '<h3>Data</h3>';
+		echo '<h3>' . get_text(['record', 'details']) . '</h3>';
+		echo '<p>' . get_text(['record', 'details_lede']) . '</p>';
+
 		echo '<dl>';
 		foreach ($keys as $key)
 		{
 			if (isset($doc->{$key}))
 			{
-				echo '<dt>' . $key . '</dt>';
+				echo '<dt>' .get_text(['record', $key]) . '</dt>';
 				echo '<dd>' . identifier_link($key, $doc->{$key}) . '</dd>';
 			}
 		}
@@ -213,6 +267,9 @@ function display_barcode($id)
 		{
 			if (isset($doc->lineage))
 			{
+				echo '<h3>' . get_text(['record', 'lineage']) . '</h3>';
+				echo '<p>' . get_text(['record', 'lineage_lede']) . '</p>';			
+			
 				echo '<ul>';
 				foreach ($doc->lineage as $taxon)
 				{
@@ -251,7 +308,8 @@ function display_barcode($id)
 					
 		if (isset($doc->feature))
 		{
-			echo '<h3>Map</h3>';
+			echo '<h3>' . get_text(['record', 'map']) . '</h3>';
+			echo '<p>' . get_text(['record', 'map_lede']) . '</p>';
 			
 			echo '<div id="small_map"></div>';
 			echo '<script>';
@@ -267,7 +325,9 @@ function display_barcode($id)
 		
 		if (isset($doc->images))
 		{
-			echo '<h3>Images</h3>';
+			echo '<h3>' . get_text(['record', 'images']) . '</h3>';
+			echo '<p>' . get_text(['record', 'images_lede']) . '</p>';
+
 			echo '<div class="gallery">';
 			echo '<ul>';
 			foreach ($doc->images as $image)
@@ -281,12 +341,15 @@ function display_barcode($id)
 			echo '</ul>';
 		}
 		
-		echo '<h3>Related barcodes</h3>
-	 	<div id="output" class="tree-table"></div>';     
+		echo '<h3>' . get_text(['record', 'related']) . '</h3>';
+		echo '<p>' . get_text(['record', 'related_lede']) . '</p>';
+			
+	 	echo '<div id="output" class="tree-table"></div>';     
 		
-		
+		/*
 		echo '<h3>Alignment</h3>
-	 	<div id="alignment" class="alignment"></div>';     
+	 	<div id="alignment" class="alignment"></div>';  
+	 	*/   
 		
 		
 		echo '</div> <!-- close main -->';
@@ -452,8 +515,10 @@ function display_bin ($id)
 	
 	if ($doc)
 	{
-		html_start();
-		
+		$title = sprintf(get_text(['bin', 'title']), $doc->bin_uri);
+	
+		html_start($title);
+				
 		// side panel
 		echo '<div id="panel">
 <a href="javascript:close_panel()">╳</a>
@@ -462,16 +527,19 @@ function display_bin ($id)
 		
 		echo '<div class="main">';
 		
-		echo '<h1>' . $doc->bin_uri . '</h1>';
-			
-		echo '<div id="small_map"></div>';
-		echo '<script>';
-		echo 'create_map(small_map);';
-		echo '</script>';	
-
-
+		echo '<h1>' . $title . '</h1>';
+		echo '<p>' . get_text(['bin', 'lede']) . '</p>';
+		
 		if (isset($doc->geo))
 		{
+			echo '<h2>' . get_text(['bin','map']) . '</h2>';
+			echo '<p>' . get_text(['bin','map_lede']) . '</p>';
+				
+			echo '<div id="small_map"></div>';
+			echo '<script>';
+			echo 'create_map(small_map);';
+			echo '</script>';	
+
 			echo '<script>add_data(' . json_encode($doc->geo) . ');</script>';
 		}
 		
@@ -482,7 +550,9 @@ function display_bin ($id)
 				switch ($key)
 				{
 					case 'lineage':		
-						echo '<h3>' . $key . '</h3>';				
+						echo '<h3>' . get_text(['bin', $key]) . '</h3>';
+						echo '<p>' . get_text(['bin', $key . '_lede']) . '</p>';
+
 						$dot = make_graph($value_counts);	
 						echo "<!-- \n";
 						echo $dot;
@@ -493,7 +563,9 @@ function display_bin ($id)
 						break;						
 						
 					default:
-						echo '<h3>' . $key . '</h3>';
+						echo '<h3>' . get_text(['bin', $key]) . '</h3>';
+						echo '<p>' . get_text(['bin', $key . '_lede']) . '</p>';
+
 						echo '<dl>';
 						foreach ($value_counts as $value => $count)
 						{
@@ -510,7 +582,9 @@ function display_bin ($id)
 		{
 			foreach ($doc->collections as $key => $values)
 			{
-				echo '<h3>' . $key . '</h3>';
+				echo '<h3>' . get_text(['bin', $key]) . '</h3>';
+				echo '<p>' . get_text(['bin', $key . '_lede']) . '</p>';
+
 				echo '<ul class="column_list">';
 				foreach ($values as $value)
 				{
@@ -524,7 +598,9 @@ function display_bin ($id)
 		
 		if (isset($doc->images))
 		{
-			echo '<h3>Images</h3>';
+			echo '<h3>' . get_text(['bin', 'images']) . '</h3>';
+			echo '<p>' . get_text(['bin', 'images_lede']) . '</p>';
+
 			echo '<div class="gallery">';
 			echo '<ul>';
 			foreach ($doc->images as $image)
@@ -741,7 +817,9 @@ WHERE
 //----------------------------------------------------------------------------------------
 function display_blast()
 {
-	html_start();
+	$title = get_text(['blast', 'title']);
+
+	html_start($title);
 	
 		
 		// side panel
@@ -749,15 +827,15 @@ function display_blast()
 <a href="javascript:close_panel()">╳</a>
 <div id="info"></div>
 </div>';
-	
 
 	echo '<div class="main">';
-
-	echo '<h1>"BLAST" a sequence</h1>';
+	
+	echo '<h1>' . $title . '</h1>';
+	echo '<p>' . get_text(['blast', 'lede']) . '</p>';
+	
 	echo '
 	<div>
-		<p>Search for the nearest sequences in k-mer vector space and build a neighbour-joining tree.</p>
-		<p>Enter a DNA sequence:</p>
+		<p>' . get_text(['blast', 'instruction']) . '</p>
 		<textarea id="sequence">
   1 accttatatc taatgttcgg tgcatgagca ggtatagtag gtaccgcact tagaatatta
  61 attcgagttg aactaggtca accaggatca cttattggtg atgaccaaat ttataatgta
@@ -776,11 +854,12 @@ function display_blast()
      echo '<div class="spacer"></div>';
      
 echo '<div>
-     	<button onclick="blast()">BLAST</button>
-     </div>
+     	<button onclick="blast()">' . get_text(['blast', 'search']) . '</button>
+     </div>';
      
-     <h2>Output</h2>
-	 <div id="output" class="tree-table"></div>';     
+     echo '<h2>' . get_text(['blast', 'results']) . '</h2>';
+     
+	echo '<div id="output" class="tree-table"></div>';     
 
 	echo '</div>';
 	
@@ -825,7 +904,9 @@ function display_recordset($id)
 	
 	if ($doc)
 	{	
-		html_start();
+		$title = sprintf(get_text(['recordset', 'title']), $doc->id);
+	
+		html_start($title);
 		
 		// side panel
 		echo '<div id="panel">
@@ -835,10 +916,14 @@ function display_recordset($id)
 		
 		echo '<div class="main">';
 		
-		echo '<h1>' . $doc->id . '</h1>';
+		echo '<h1>' . $title . '</h1>';
+
+		echo '<p>' . get_text(['recordset', 'lede']) . '</p>';		
 		
 		// map
-		echo '<h2>Map</h2>';
+		echo '<h2>'. get_text(['recordset', 'map']) . '</h2>';
+		echo '<p>'. get_text(['recordset', 'map_lede']) . '</p>';
+
 		echo '<div id="filtered_map"></div>';
 		
 		// images
@@ -849,9 +934,16 @@ function display_recordset($id)
 		echo '</div>';
 		
 		$filter = 'recordset:' . $id;
+		
 	echo '<script>
-			create_large_map("filtered_map", false, "' . $filter . '");
-		</script>';
+			create_large_map("filtered_map", false, "' . $filter . '");';
+			
+	if (isset($doc->spatialCoverage))
+	{
+		echo 'map_fit_bounds(' . json_encode($doc->spatialCoverage) . ');';
+	}
+	
+	echo '</script>';
 		
 		
 		// scripts to support paginated browsing....
@@ -991,9 +1083,6 @@ function main()
 			$handled = true;		
 		}
 	}
-	
-	
-	
 	
 	if (!$handled)
 	{
