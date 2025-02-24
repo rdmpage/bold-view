@@ -63,4 +63,8 @@ en:
     map: Map
     map_lede: Localities of barcodes in this dataset.
     title: Dataset %s
+    
+  taxonomy:
+     map: Map
+     map_lede: Localities of barcodes in this taxon.
    

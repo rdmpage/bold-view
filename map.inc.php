@@ -24,6 +24,8 @@ var map;
 var geojson = null;
 var drawnItems = null;
 
+var dataLayer = null;
+
 // http://gis.stackexchange.com/a/116193
 // http://jsfiddle.net/GFarkas/qzdr2w73/4/
 var icon = new L.divIcon({className: 'mydivicon'});		
@@ -155,14 +157,7 @@ function create_large_map(id, controls = true, filter = '') {
 	map.addLayer(layer);	
 
 	/* This is where we add custom tiles, e.g. with data points */
-	
-	var dotsAttrib='BOLD';
-	var dots = new L.TileLayer('api_tile.php?x={x}&y={y}&z={z}' 
-		//+ "&t=" + Date.now(), 
-		+ "&filter=" + filter,
-		{minZoom: 0, maxZoom: 14, attribution: dotsAttrib});
-
-	map.addLayer(dots);	
+	map_add_data_layer(filter);
 	
 	// controls to draw polygons
 	if (controls) {
@@ -209,6 +204,23 @@ function create_large_map(id, controls = true, filter = '') {
 		});						
 	}	
 
+}
+
+function map_add_data_layer (filter) {
+	dataLayer = new L.TileLayer('api_tile.php?x={x}&y={y}&z={z}' 
+		//+ "&t=" + Date.now(), 
+		+ "&filter=" + filter,
+		{minZoom: 0, maxZoom: 14, attribution: 'BOLD'});
+
+	map.addLayer(dataLayer);	
+	return dataLayer;
+}
+
+function map_remove_data_layer(layer) {
+	if (layer) {
+		map.removeLayer(layer);
+		layer = null;
+	}
 }
 
 // set bounds of map to enclose polygon

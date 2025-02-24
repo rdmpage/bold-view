@@ -85,3 +85,8 @@
   box-sizing:border-box; /* https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing */
   padding:1em;
 }
+
+#taxon_info {
+	height: 8em;
+	overflow-y:auto;
+}

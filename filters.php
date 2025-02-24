@@ -2,6 +2,8 @@
 
 // Parse filters and convert to SQL queries
 
+require_once (dirname(__FILE__) . '/pg.php');
+
 //----------------------------------------------------------------------------------------
 function parse_filter_url_parameter($filter_string)
 {
@@ -25,9 +27,28 @@ function parse_filter_url_parameter($filter_string)
 }
 
 //----------------------------------------------------------------------------------------
-// Convert filters to SQL, if additional is true we use AND as a prefix as filters
-// are in addition to other parts of the WHERE clause
-function filters_to_sql($filters, $additional = true)
+function subtree_span($taxid)
+{
+	global $db;
+	
+	$span = array();
+	
+	$sql = "SELECT * FROM boldtaxonomy WHERE external_id='$taxid' LIMIT 1";
+	
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result))
+	{
+		$span[] = $row['left'];
+		$span[] = $row['right'];
+	}
+	
+	return $span;
+}
+
+//----------------------------------------------------------------------------------------
+// Convert filters to SQL
+function filters_to_sql($filters)
 {
 	$sql = '';
 
@@ -41,17 +62,17 @@ function filters_to_sql($filters, $additional = true)
 				case 'recordset':
 					$sql_filters[] = "bold_recordset_code_arr @> ARRAY['" . str_replace("'", "''", $v) . "']";
 					break;
+					
+					// eat taxid as this needs special handling
+				case 'taxon':
+					$sql_filters[] = "lineage_arr @> ARRAY['" . str_replace("'", "''", $v) . "']";
+					break;
 			
 				case 'country_iso':
 				default: // simple match
 					$sql_filters[] = "$k='" . str_replace("'", "''", $v) . "'";
 					break;
 			}
-		}
-		
-		if ($additional)
-		{
-			$sql .= ' AND';
 		}
 		
 		$sql .= ' ' . join(' AND ', $sql_filters);

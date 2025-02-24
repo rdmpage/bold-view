@@ -167,6 +167,9 @@ function default_display($error_msg = '')
 // parse a "green genes-style rank__name string and convert to URL parameters"
 function rank_prefix_name_to_url($string)
 {
+	$url = '?taxonname=' . urlencode($string);
+	
+	/*
 	if (preg_match('/([a-z]+)__([A-Z].*)/', $string, $m))
 	{
 		$url = '?taxonname=' . urlencode($m[2]) . '&rank=' . urlencode($m[1]);
@@ -176,6 +179,7 @@ function rank_prefix_name_to_url($string)
 		// shouldn't happen
 		$url = '?taxonname=' . urlencode($string);
 	}
+	*/
 	
 	return $url;
 
@@ -229,16 +233,11 @@ function display_barcode($id)
 				echo '<ul>';
 				foreach ($doc->lineage as $taxon)
 				{
-					//echo '<li>' . $taxon . '</li>';
-					
-					if (preg_match('/([a-z]+)__([A-Z].*)/', $taxon, $m))
-					{
-						echo '<li>';
-						echo '<a href="' . rank_prefix_name_to_url($taxon) . '">';
-						echo $taxon;
-						echo '</a>';
-						echo '</li>';
-					}
+					echo '<li>';
+					echo '<a href="' . rank_prefix_name_to_url($taxon) . '">';
+					echo $taxon;
+					echo '</a>';
+					echo '</li>';
 				}
 				echo '</ul>';
 			}
@@ -621,28 +620,35 @@ function display_map ($filter = "")
 
 
 //----------------------------------------------------------------------------------------
-function display_taxonomy ($taxon = 713, $k = 40)
+function display_taxonomy ($taxid = 713, $k = 40)
 {
+	// we need id and name
+	$taxon_obj = get_taxon_from_taxid($taxid);
+
 	html_start();
 	
 	echo '<script>
-	var curnode_id = \'' . $taxon . '\';	
+	var curnode_id = \'' . $taxon_obj->id . '\';	
 	</script>';
 
 	echo '<div class="content">';
 	
 	echo '<div class="tree">';
-	echo get_taxonomy_subtree($taxon, $k);
+	echo get_taxonomy_subtree($taxon_obj->id, $k);
 	echo '</div>';
 	
 	echo '<div class="taxonomy">';
 	
+	echo '<h2 id="taxon_name"></h2>';
 	echo '<div id="taxon_info"></div>';
-	echo '<div id="wiki"></div>';
 	
-	echo '</div>';
+	echo '<h3>' . get_text(['taxonomy', 'map']) . '</h3>';
+	echo '<p>'. get_text(['taxonomy', 'map_lede']) . '</p>';
+	echo '<div id="filtered_map"></div>';
+		
+	echo '</div>'; // taxonomy
 	
-	echo '</div>';
+	echo '</div>'; // content
 	
 	echo '<script>
 	
@@ -659,8 +665,11 @@ function display_taxonomy ($taxon = 713, $k = 40)
 		document.getElementById("node" + curnode_id).classList.add("active");	
 
 		// display info on taxon
+		document.getElementById("taxon_name").innerHTML = "";
 		document.getElementById("taxon_info").innerHTML = "";
-		document.getElementById("wiki").innerHTML = "";
+		
+		// remove data from map
+		map_remove_data_layer(dataLayer);
 		
 		var url = "api.php?taxonid=" + id;
 		
@@ -675,11 +684,24 @@ function display_taxonomy ($taxon = 713, $k = 40)
 				response.json().then(function(data) {					
 					//var html = JSON.stringify(data);
 					
-					var html = "<h2>" + data.name + "</h2>";
-					document.getElementById("taxon_info").innerHTML = html;
+					var name = data.name; // consider how to format this
+					document.getElementById("taxon_name").innerHTML = name;
+					
+					// map
+					map_add_data_layer( "taxon:" + data.name);
+					
+					if (data.spatialCoverage) {
+						map_fit_bounds(data.spatialCoverage);
+					} else {
+						map_fit_bounds({"type":"Polygon","coordinates":[[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]});
+					}
+						
+						
+					
 				});
 				
 		});
+		
 		
 		// wiki-based information
 		
@@ -704,7 +726,7 @@ WHERE
 			function(response){
 				if (response.status != 200) {
 					console.log("Looks like there was a problem. Status Code: " + response.status);
-					document.getElementById("info").innerHTML = "404";
+					document.getElementById("taxon_info").innerHTML = "404";
 					return;
 				}
 				
@@ -712,10 +734,9 @@ WHERE
 					
 					if (data.results.bindings) {
 						var enwiki = data.results.bindings[0].enwiki.value;
-						//document.getElementById("wiki").innerHTML = enwiki;
 						
 						// get summary from dbpedia
-						dbpedia_summary(enwiki, "wiki");
+						dbpedia_summary(enwiki, "taxon_info");
 					}
 					
 				});
@@ -759,6 +780,8 @@ WHERE
 				
 		});
 	}	
+	
+	create_large_map("filtered_map", false);
 	
 	// information 
 	taxon_info(curnode_id);
@@ -995,7 +1018,7 @@ function main()
 		{
 			$taxonid = $_GET['taxonid'];
 							
-			display_taxonomy($taxonid);
+			display_taxonomy($taxonid, 20);
 			$handled = true;
 		
 		}

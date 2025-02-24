@@ -858,31 +858,19 @@ function get_geo($geometry, $filter_string ='', $limit = 100)
 	
 	// List of records within this geometry
 	$obj->hits = array();
-	
-	$sql = "SELECT *, ST_AsText(coord) AS point 
-	FROM boldvector 
-	WHERE ST_Within(coord, ST_GeomFromGeoJSON('" . json_encode($geometry) . "'))";
-	
+		
 	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point 
 	FROM boldvector 
 	INNER JOIN boldmeta USING(processid)
 	WHERE ST_Within(boldvector.coord, ST_GeomFromGeoJSON('" . json_encode($geometry) . "'))";
 	
-	$sql .= filters_to_sql($filters);
-	  
+	if (isset($obj->filters))
+	{
+		$filter_sql = filters_to_sql($filters);
+		$sql .= ' AND ' . $filter_sql;
+	}
+	
 	$sql .= " LIMIT $limit";
-
-/*
-SELECT *, ST_AsText(coord) AS point
-FROM boldvector
-WHERE ST_Within(
-    coord,
-    ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-18.369140624999996,30.977609093348686],[-18.369140624999996,33.7243396617476],[-14.589843749999998,33.7243396617476],[-14.589843749999998,30.977609093348686],[-18.369140624999996,30.977609093348686]]]}')
-)
-LIMIT 10
-;
-*/
-	//echo $sql;
 
 	$result = pg_query($db, $sql);
 	
@@ -919,6 +907,25 @@ function get_taxon_from_taxid($taxid)
 	while ($row = pg_fetch_assoc($result)) 
 	{
 		$obj = pq_record_to_obj($row);
+	}
+	
+	// geographic extent
+	$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
+	FROM boldvector 
+	WHERE lineage_arr @> ARRAY['" . $obj->name . "']";
+
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result))
+	{
+		if (!$obj)
+		{
+			$obj = new stdclass;
+			$obj->id = $taxid;
+		}
+		
+		// schema.org term
+		$obj->spatialCoverage = $row['envelope'];
 	}
 	
 	return $obj;
@@ -967,7 +974,10 @@ function get_paged_barcodes($page_start = 0, $page_size = 100, $filter_string ='
 	$sql = "SELECT *
 	FROM boldmeta";
 	
-	$sql .= ' WHERE' . filters_to_sql($filters, false);
+	if (isset($obj->filters))
+	{	
+		$sql .= ' WHERE' . filters_to_sql($filters);
+	}
 	
 	$sql .= " LIMIT $page_size";
 	
@@ -1013,7 +1023,10 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 	FROM boldmeta
 	INNER JOIN boldimage USING(processid)";
 	
-	$sql .= ' WHERE' . filters_to_sql($filters, false);
+	if (isset($obj->filters))
+	{	
+		$sql .= ' WHERE' . filters_to_sql($filters);
+	}
 	
 	$sql .= " LIMIT $page_size";
 	

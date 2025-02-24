@@ -175,15 +175,17 @@ if (1)
 	$values[] = $bounding_box->top_left->lat;
 	$values[] = 4326; 
 
+	/*
 	$sql = "SELECT ST_AsGeoJSON(coord) AS pt FROM boldvector 
 	WHERE ST_Intersects(coord,
 	  ST_MakeEnvelope(" . join(',', $values) . "))";
+	*/
 	  
 	//$sql .= " AND lineage LIKE 'k__Animalia;p__Chordata;c__Mammalia;o__Chiroptera;%'";
 	
 	//$sql .= " AND lineage LIKE 'k__Animalia;p__Arthropoda;c__Insecta;o__Trichoptera;%'";
 	
-	
+	/*
 	$sql = "SELECT ST_AsGeoJSON(boldvector.coord) AS pt 
 	FROM boldvector 
 	INNER JOIN boldmeta USING(processid)
@@ -193,6 +195,45 @@ if (1)
 	$sql .= filters_to_sql($filters);
 	  
 	$sql .= " LIMIT " . LIMIT . ";";
+	*/
+	
+	
+	if (1)
+	{
+		$sql = "SELECT ST_AsGeoJSON(boldvector.coord) AS pt 
+		FROM boldvector 
+		INNER JOIN boldmeta USING(processid)";
+		
+		$filter_sql = filters_to_sql($filters);
+		
+		if ($filter_sql == '')
+		{
+			$sql .= ' WHERE ';
+		}
+		else
+		{
+			$sql .= ' WHERE ' . $filter_sql . ' AND ';
+		}
+		$sql .= "ST_Intersects(boldvector.coord,
+		  ST_MakeEnvelope(" . join(',', $values) . "))";
+	}	
+	else
+	{
+		// SLOW...
+		$span = subtree_span(50);
+		
+		$sql = "SELECT ST_AsGeoJSON(boldvector.coord) AS pt 
+		FROM boldvector
+		INNER JOIN boldtaxonomy 
+		ON boldtaxonomy.external_id = boldvector.bin_uri
+		WHERE ST_Intersects(boldvector.coord,
+		  ST_MakeEnvelope(" . join(',', $values) . "))";
+		  
+		$sql .= " AND (boldtaxonomy.left BETWEEN " . $span[0] . " AND " . $span[1] . ") AND (boldtaxonomy.right BETWEEN " . $span[0] . " AND " . $span[1] . ")";
+	}
+	  
+	$sql .= " LIMIT " . LIMIT . ";";
+	
 
 	$result = pg_query($db, $sql);
 	
