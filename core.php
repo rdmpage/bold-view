@@ -479,7 +479,7 @@ function get_barcode_images($processid)
 	
 	$images = array();
 
-	$sql = "SELECT boldimage.processid, boldimage.url FROM boldvector 
+	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title FROM boldvector 
 	INNER JOIN boldimage USING(processid)
 	WHERE processid='" . $processid . "'";
 	$result = pg_query($db, $sql);
@@ -503,7 +503,7 @@ function get_bin_images($bin_uri)
 	
 	$images = array();
 
-	$sql = "SELECT boldimage.processid, boldimage.url FROM boldvector 
+	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title FROM boldvector 
 	INNER JOIN boldimage USING(processid)
 	WHERE bin_uri='" . $bin_uri . "'";
 	$result = pg_query($db, $sql);
@@ -910,9 +910,18 @@ function get_taxon_from_taxid($taxid)
 	}
 	
 	// geographic extent
-	$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
-	FROM boldvector 
-	WHERE lineage_arr @> ARRAY['" . $obj->name . "']";
+	if (preg_match('/^BOLD/', $obj->name))
+	{
+		$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
+		FROM boldvector 
+		WHERE bin_uri = '" . $obj->name . "'";		
+	}
+	else
+	{
+		$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
+		FROM boldvector 
+		WHERE lineage_arr @> ARRAY['" . $obj->name . "']";
+	}
 
 	$result = pg_query($db, $sql);
 	

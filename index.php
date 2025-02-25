@@ -288,12 +288,14 @@ function display_barcode($id)
 			foreach ($doc->images as $image)
 			{
 				echo '<li>';
+				echo '<div>' . $image->title . '</div>';
 				echo '<img onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
     <li></li>';
 			echo '</ul>';
+			echo '</div>';
 		}
 		
 		echo '<h3>' . get_text(['record', 'related']) . '</h3>';
@@ -561,12 +563,14 @@ function display_bin ($id)
 			foreach ($doc->images as $image)
 			{
 				echo '<li>';
+				echo '<div>' . $image->title . '</div>';
 				echo '<img onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
     <li></li>';
 			echo '</ul>';
+			echo '</div>';
 		}
 		
 		
@@ -640,6 +644,7 @@ function display_taxonomy ($taxid = 713, $k = 40)
 	echo '<div class="taxonomy">';
 	
 	echo '<h2 id="taxon_name"></h2>';
+	echo '<div id="taxon_link"></div>';
 	echo '<div id="taxon_info"></div>';
 	
 	echo '<h3>' . get_text(['taxonomy', 'map']) . '</h3>';
@@ -666,6 +671,7 @@ function display_taxonomy ($taxid = 713, $k = 40)
 
 		// display info on taxon
 		document.getElementById("taxon_name").innerHTML = "";
+		document.getElementById("taxon_link").innerHTML = "";
 		document.getElementById("taxon_info").innerHTML = "";
 		
 		// remove data from map
@@ -687,16 +693,20 @@ function display_taxonomy ($taxid = 713, $k = 40)
 					var name = data.name; // consider how to format this
 					document.getElementById("taxon_name").innerHTML = name;
 					
+					if (name.match(/BOLD/)) {
+						var html = "<a href=\"bin/" + name + "\">" + name + "</a>";
+						document.getElementById("taxon_link").innerHTML = html;
+					}
+					
 					// map
-					map_add_data_layer( "taxon:" + data.name);
+					map_add_data_layer( "taxon:" + encodeURIComponent(data.name));
 					
 					if (data.spatialCoverage) {
+						console.log(JSON.stringify(data.spatialCoverage));
 						map_fit_bounds(data.spatialCoverage);
 					} else {
 						map_fit_bounds({"type":"Polygon","coordinates":[[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]});
 					}
-						
-						
 					
 				});
 				
@@ -752,7 +762,7 @@ WHERE
 			function(response){
 				if (response.status != 200) {
 					console.log("Looks like there was a problem. Status Code: " + response.status);
-					document.getElementById("info").innerHTML = "404";
+					document.getElementById(element_id).innerHTML = "404";
 					return;
 				}
 				

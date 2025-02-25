@@ -2,6 +2,8 @@
 
 // Parse filters and convert to SQL queries
 
+// Filters are in the form ?filters=key:value,key:value 
+
 require_once (dirname(__FILE__) . '/pg.php');
 
 //----------------------------------------------------------------------------------------
@@ -13,6 +15,10 @@ function parse_filter_url_parameter($filter_string)
 	{
 		return $filters;
 	}
+	
+	// protect "BOLD" as it has a colon in the name (stupid thing to do)
+	
+	$filter_string = str_replace('BOLD:', urlencode('BOLD:'), $filter_string);
 	
 	$parameters = explode(',', html_entity_decode($filter_string));
 	foreach($parameters as $param)
@@ -63,9 +69,15 @@ function filters_to_sql($filters)
 					$sql_filters[] = "bold_recordset_code_arr @> ARRAY['" . str_replace("'", "''", $v) . "']";
 					break;
 					
-					// eat taxid as this needs special handling
 				case 'taxon':
-					$sql_filters[] = "lineage_arr @> ARRAY['" . str_replace("'", "''", $v) . "']";
+					if (preg_match('/^BOLD/', $v))
+					{
+						$sql_filters[] = "boldvector.bin_uri='" . str_replace("'", "''", $v) . "'";					
+					}
+					else
+					{
+						$sql_filters[] = "lineage_arr @> ARRAY['" . str_replace("'", "''", $v) . "']";
+					}
 					break;
 			
 				case 'country_iso':
@@ -77,6 +89,8 @@ function filters_to_sql($filters)
 		
 		$sql .= ' ' . join(' AND ', $sql_filters);
 	}
+	
+	//echo $sql;
 
 	return $sql;
 }
