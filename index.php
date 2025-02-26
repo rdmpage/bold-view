@@ -100,6 +100,7 @@ echo '</style>' . "\n";
 echo '<script>' . "\n";
 
 require_once (dirname(__FILE__) . '/panel.js.inc.php');
+require_once (dirname(__FILE__) . '/search.js.inc.php');
 
 echo '</script>' . "\n";
 
@@ -111,6 +112,9 @@ echo '</script>' . "\n";
 	echo '<nav>
 	<ul>
 		<li><a href=".">' . get_text(['nav', 'home']) . '</a></li>
+		<li>
+			<input id="search" type="text" placeholder="' . get_text(['nav', 'search']) . '" autofocus>
+		</li>
 		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
 		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
 		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
@@ -124,6 +128,11 @@ echo '</script>' . "\n";
 function html_end()
 {
 	echo '</div>'; // content
+	
+	echo '<script>' . "\n";
+	require_once (dirname(__FILE__) . '/keypress.js.inc.php');
+	echo '</script>' . "\n";
+
 	echo '</body>';
 	echo '</html>';
 }
@@ -155,6 +164,9 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
 		echo '<li>View a barcode for a gecko <i>Tropiocolotes tripolitanus</i> with multiple BINs <a href="record/REWSS381-22">REWSS381-22</a></li>';
 		echo '<li>View a BIN which includes holotype (<a href="record/PNGTY1822-15">PNGTY1822-15</a>): <a href="bin/BOLD:ACA8529">BOLD:ACA8529</a></li>';
+		echo '<li>View a barcode for a Fijian bee <i>Homalictus nadarivatu</i> with interesting tree <a href="record/GBMNC45937-20">GBMNC45937-20</a></li>';
+		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
+
 		echo '</ul>';
 	}
 	
@@ -356,10 +368,7 @@ echo '<script>
 	}
 	else
 	{
-		html_start();
-		echo '<h1>Error</h1>';
-		echo '<p>' . "$id not found!" . '</p>';
-		html_end();	
+		default_display("$id not found");
 	}
 }
 
@@ -593,10 +602,7 @@ function display_bin ($id)
 	}
 	else
 	{
-		html_start();
-		echo '<h1>Error</h1>';
-		echo '<p>' . "$id not found!" . '</p>';
-		html_end();	
+		default_display("$id not found");
 	}
 	
 
@@ -941,10 +947,7 @@ function display_recordset($id)
 	}
 	else
 	{
-		html_start();
-		echo '<h1>Error</h1>';
-		echo '<p>' . "$id not found!" . '</p>';
-		html_end();	
+		default_display("$id not found");
 	}
 }
 

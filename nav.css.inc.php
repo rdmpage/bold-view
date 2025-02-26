@@ -10,7 +10,7 @@ nav {
 	
 	position: sticky; 
 	top: 0;
-	z-index:100;	
+	z-index:100;
 }
 
 /* https://stackoverflow.com/questions/23226888/horizontal-list-items-fit-to-100-with-even-spacing */
@@ -25,4 +25,8 @@ nav ul li {
     display: block;
     flex: 0 1 auto; /* Default */
     list-style-type: none;
+}
+
+#search {
+	font-size:1em;
 }

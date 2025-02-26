@@ -145,11 +145,14 @@ function get_barcode($processid)
 		$hit = pq_record_to_obj($row);
 	}
 	
-	// images
-	$hit->images = get_barcode_images($processid);
-	if (count($hit->images) == 0)
-	{
-		unset($hit->images);
+	if ($hit)
+	{	
+		// images
+		$hit->images = get_barcode_images($processid);
+		if (count($hit->images) == 0)
+		{
+			unset($hit->images);
+		}
 	}
 	
 	return $hit;	
@@ -941,21 +944,76 @@ function get_taxon_from_taxid($taxid)
 }
 
 //----------------------------------------------------------------------------------------
-// Very crude taxon search
+// Very crude taxon search, by defalt name should come with rank__ prefix
 function get_taxon_from_name($name, $rank = '')
 {
 	global $db;
 	
 	$obj = null;
 	
-	$sql = "SELECT * FROM boldtaxonomy WHERE name='" . str_replace("'", "''", $name) . "' LIMIT 1";
-
-	$result = pg_query($db, $sql);
-	
-	while ($row = pg_fetch_assoc($result)) 
+	// name has rank embedded, so we match directly...
+	if (preg_match('/([a-z]+)__([A-Z].*)/', $name, $m))
 	{
-		$obj = pq_record_to_obj($row);
+		$sql = "SELECT * FROM boldtaxonomy WHERE name='" . str_replace("'", "''", $name) . "' LIMIT 1";
+
+		$result = pg_query($db, $sql);
+		
+		while ($row = pg_fetch_assoc($result)) 
+		{
+			$obj = pq_record_to_obj($row);
+		}
 	}
+	else
+	{
+		// OK because I've decided to store names and ranks, a simple name search is hard  - bugger
+		// taxonomy						
+		$taxon_keys = array(
+			"kingdom" 		=> "k__",
+			"phylum"		=> "p__",
+			"class" 		=> "c__",
+			"order" 		=> "o__",
+			"family" 		=> "f__",
+			"subfamily" 	=> "sf__",
+			"tribe" 		=> "t__",
+			"genus" 		=> "g__",
+			"species" 		=> "s__",
+			"subspecies"	=> "ss__",
+		);	
+		
+		$rank_names = array();
+		
+		if (preg_match('/\s/', trim($name)))
+		{
+			// name has space(s)
+			$rank_names[] = "'" . str_replace("'", "''", $taxon_keys['species'] . $name) . "'";
+			$rank_names[] = "'" . str_replace("'", "''", $taxon_keys['subspecies'] . $name) . "'";
+		}
+		else
+		{
+			// Uninomial
+			unset($taxon_keys['species']);
+			unset($taxon_keys['subspecies']);
+			
+			foreach ($taxon_keys as $prefix)
+			{
+				$rank_names[] =  "'" . str_replace("'", "''", $prefix . $name) . "'";
+			}
+		}
+			
+		$sql = "SELECT * FROM boldtaxonomy WHERE name IN (" . join(",", $rank_names) . ") LIMIT 1";
+
+		$result = pg_query($db, $sql);
+		
+		while ($row = pg_fetch_assoc($result)) 
+		{
+			$obj = pq_record_to_obj($row);
+		}
+		
+		
+		
+		
+	}	
+	
 	
 	return $obj;
 }

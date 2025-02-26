@@ -35,9 +35,10 @@ en:
     view: View
     
   nav:
-    blast: Search  
+    blast: DNA Search  
     home: Home
     map: Map
+    search: Search
     taxonomy: Taxonomy
     
   record:

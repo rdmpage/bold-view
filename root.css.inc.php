@@ -1,7 +1,7 @@
 /* https://dev.to/arnu515/auto-dark-light-theme-using-css-only-2e0m */
 :root {
   	overscroll-behavior: none; /* https://css-irl.info/preventing-overscroll-bounce-with-css/ */
-  	--nav-height: 36px;
+  	--nav-height: 3em;
   	--side-width: 30vw;
 
 	--text: #333;
