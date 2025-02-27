@@ -49,10 +49,6 @@
 @media (prefers-color-scheme: dark) {
 
   :root {
-  	overscroll-behavior: none; /* https://css-irl.info/preventing-overscroll-bounce-with-css/ */
-  	--nav-height: 36px;
-  	--side-width: 30vw;
-  
     --text: #d0d0d0;
     --bg: #121212;  /* https://m2.material.io/design/color/dark-theme.html#properties */
      
@@ -98,19 +94,12 @@
 	--tree-classification-border: 1px solid rgb(50,4,172);
 	--tree-classification-bg: rgb(50,4,172);
 	
-	--taxonomy-width: 300px;
-	
 	/* 
 		400 rgb(117,41,243); 
 		500 rgb(89,13,228);
 		600 rgb(68,8,201);
 		700 rgb(50,4,172);
 	*/
-	
-	
-	
-
-	
 
   }
 }
