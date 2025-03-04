@@ -43,8 +43,9 @@ echo '
 
 /* main column */
 .main {
-	width:100vw;
+	width:90vw;
 	padding:1em;
+	margin:auto;
 }
 
 .main_with_map {
@@ -113,7 +114,7 @@ echo '</script>' . "\n";
 	<ul>
 		<li><a href=".">' . get_text(['nav', 'home']) . '</a></li>
 		<li>
-			<input id="search" type="text" placeholder="' . get_text(['nav', 'search']) . '" autofocus>
+			<input class="search" id="search" type="text" placeholder="' . get_text(['nav', 'search']) . '" autofocus>
 		</li>
 		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
 		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
@@ -166,6 +167,7 @@ function default_display($error_msg = '')
 		echo '<li>View a BIN which includes holotype (<a href="record/PNGTY1822-15">PNGTY1822-15</a>): <a href="bin/BOLD:ACA8529">BOLD:ACA8529</a></li>';
 		echo '<li>View a barcode for a Fijian bee <i>Homalictus nadarivatu</i> with interesting tree <a href="record/GBMNC45937-20">GBMNC45937-20</a></li>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
+		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
 
 		echo '</ul>';
 	}

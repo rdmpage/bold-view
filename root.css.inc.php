@@ -20,6 +20,11 @@
 	/* input */
 	--input-border: #BBB;
 	--input-bg: #fff;
+	--input-color: var(--text);
+	
+	--input-bg-focus: white;
+	--input-border-focus: black;
+	--input-focus-color: black;
 	
 	/* text area */
 	--textarea-border: #BBB;
@@ -72,6 +77,11 @@
    	/* input */
    	--input-border:var(--bg);
    	--input-bg: rgb(56,45,71);
+	--input-color: rgb(212,180,250);
+	
+	--input-bg-focus: rgb(79,70,93);
+	--input-border-focus: white;
+	--input-focus-color: white;
    	
 	/* text area */
 	--textarea-border: var(--bg);

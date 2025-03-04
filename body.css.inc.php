@@ -25,7 +25,19 @@ dd {
   margin: 0;
   grid-column-start: 2;
   font-weight: bold;
-}    
+}  
+
+.search {
+	border:1px solid var(--input-border);
+ 	background-color: var(--input-bg);
+ 	color: var(--input-color);
+}  
+
+.search:focus { 
+	background-color: var(--input-bg-focus);
+	border:1px solid var(--input-border-focus);
+	color: var(--input-focus-color);
+}
 
 textarea {
 	font-size:1em;
@@ -39,8 +51,6 @@ textarea {
 	border:1px solid var(--textarea-border);
  	background-color: var(--textarea-bg);
  	color: var(--textarea-color);
- 	
-
 }
 
 textarea:focus { 
