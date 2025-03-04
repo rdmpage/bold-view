@@ -7,6 +7,27 @@ error_reporting(E_ALL);
 ini_set('memory_limit', '-1');
 
 //----------------------------------------------------------------------------------------
+function swa_clean_sequence($sequence)
+{
+	$sequence = strtoupper($sequence);
+	
+	// whitespace and numbers
+	$sequence = preg_replace('/[0-9\s]/', '', $sequence);
+	$sequence = preg_replace('/\R/u', '', $sequence);
+	
+	// replace ambiguity codes with 'N';	
+	$sequence = preg_replace('/[RYKMSWBHNDV]/', 'N', $sequence);
+
+	// remove gaps
+	$sequence = preg_replace('/-/', '', $sequence);
+	
+	// remove crap
+	$sequence = preg_replace('/I/', '', $sequence);
+
+	return $sequence;
+}
+
+//----------------------------------------------------------------------------------------
 function swa($label1, $label2, $seq1, $seq2, $debug = false)
 {
 	$alignment = new stdclass;
@@ -243,9 +264,17 @@ function show_alignment($alignment)
 
 	$label_length = 16;
 	$chunk_length = 60;
+	$pos_length = 6;
 
 	$num_rows = 3; // one for each sequence, one for the vertical bars
 	$num_chunks = ceil(strlen($alignment->text[0]) / $chunk_length);
+	
+	// zero-based position of alignment between two sequences
+	$seq1_pos_start = $alignment->spans[0][0];
+	$seq2_pos_start = $alignment->spans[1][0];
+
+	$seq1_pos_end = $alignment->spans[0][1];
+	$seq2_pos_end = $alignment->spans[1][1];
 
 	//$text .= "score=" . $alignment->score . "\n";
 	
@@ -257,17 +286,43 @@ function show_alignment($alignment)
 			{
 				case 0:
 					$text .= str_pad($alignment->labels[0], $label_length, ' ', STR_PAD_RIGHT);
-					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length) . "\n";
+					
+					$pos = $seq1_pos_start + ($i * $chunk_length) + 1;
+					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_RIGHT);
+					
+					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
+					
+					if ($i == $num_chunks - 1)
+					{
+						$pos = $seq1_pos_end + 1;
+						$text .= str_pad($pos, $pos_length, ' ', STR_PAD_LEFT);						
+					}
+					
+					$text .= "\n";
 					break;
 				
 				case 1:
 					$text .= str_pad(" ", $label_length, ' ', STR_PAD_RIGHT);
-					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length) . "\n";
+					$text .= str_pad(" ", $pos_length, ' ', STR_PAD_RIGHT);
+					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
+					$text .= "\n";
 					break;
 				
 				case 2:
 					$text .= str_pad($alignment->labels[1], $label_length, ' ', STR_PAD_RIGHT);
-					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length) . "\n";
+
+					$pos = $seq2_pos_start + ($i * $chunk_length) + 1;
+					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_RIGHT);
+
+					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
+
+					if ($i == $num_chunks - 1)
+					{
+						$pos = $seq2_pos_end + 1;
+						$text .= str_pad($pos, $pos_length, ' ', STR_PAD_LEFT);						
+					}
+					
+					$text .= "\n";
 					break;		
 			}
 		}
@@ -280,7 +335,7 @@ function show_alignment($alignment)
 
 
 if (0)
-	{
+{
 	
 	
 	$seq1 = 'ATTTCCACGTATAAATAATATAAGATTTTGATTATTACCTCCATCCCTCACATTACTAATTTCAAGAAGAATTGTAGAAAATGGAGCAGGAACT';
@@ -339,12 +394,12 @@ if (0)
 	
 	
 	
-	$seq1 = 'ATTTCCACGTATAAATAATATAAGATTTTGATTATTACCTCCATCCCTCACATTACTAATTTCAAGAAGAATTGTAGAAAATGGAGCAGGAACT';
-	$seq2 =                 'AATATAAGATTTTGATTACTNCCCCCCTCTCTAACATTATTAATTTCAAGAAGAATTGTAGAAAATGGGGCAGGT';
+	//$seq1 = 'ATTTCCACGTATAAATAATATAAGATTTTGATTATTACCTCCATCCCTCACATTACTAATTTCAAGAAGAATTGTAGAAAATGGAGCAGGAACT';
+	//$seq2 =                 'AATATAAGATTTTGATTACTNCCCCCCTCTCTAACATTATTAATTTCAAGAAGAATTGTAGAAAATGGGGCAGGT';
 	
 	
-	$seq1 = '----------------------------------------------------------------------ATTTCCACGTATAAATAATATAAGATTTTGATTATTACCTCCATCCCTCACATTACTAATTTCAAGAAGAATTGTAGAAAATGGAGCAGGAACT';
-	$seq2 = 'AACATTATATTTTATTTTTGGAGTATGATCAGGAATAATTGGAACATCTCTAAGATTATTAATTCGAGCTGAATTAGGAAATCCAGGATCATTAATTGGAGATGATCAAATTTATAATACTATCGTTACAGCACATGCATTTATTATAATTTTTTTTATAGTAATGCCAATTATAATTGGAGGATTTGGAAATTGATTAGTACCATTAATATTAGGAGCCCCAGATATAGCTTTCCCACGTATAAATAATATAAGATTTTGATTACTTCCCCCATCACTAACATTATTAATCTCAAGAAGAATTGTAGAAAATGGAGCAGGAACTGGATGAACAGTTTACCCCCCACTTTCATCAAATATCGCTCATGGGGGAAGATCTGTAGATTTAGCAATTTTCTCCTTACATTTAGCTGGAATTTCGTCAATTTTAGGGGCAATTAATTTTATCACAACAATTATTAACATAAAAATAAATGGACTATCATTTGATCAAATACCTTTATTTGTATGAGCTGTAGGAATTACCGCATTATTATTACTCCTATCTTTACCAGTACTAGCAGGAGCAATCACTATATTACTAACTGATCGAAACCTAAACACATCATTTTTCGACCCTGCTGGAGGAGGAG--------';
+	//$seq1 = '----------------------------------------------------------------------ATTTCCACGTATAAATAATATAAGATTTTGATTATTACCTCCATCCCTCACATTACTAATTTCAAGAAGAATTGTAGAAAATGGAGCAGGAACT';
+	//$seq2 = 'AACATTATATTTTATTTTTGGAGTATGATCAGGAATAATTGGAACATCTCTAAGATTATTAATTCGAGCTGAATTAGGAAATCCAGGATCATTAATTGGAGATGATCAAATTTATAATACTATCGTTACAGCACATGCATTTATTATAATTTTTTTTATAGTAATGCCAATTATAATTGGAGGATTTGGAAATTGATTAGTACCATTAATATTAGGAGCCCCAGATATAGCTTTCCCACGTATAAATAATATAAGATTTTGATTACTTCCCCCATCACTAACATTATTAATCTCAAGAAGAATTGTAGAAAATGGAGCAGGAACTGGATGAACAGTTTACCCCCCACTTTCATCAAATATCGCTCATGGGGGAAGATCTGTAGATTTAGCAATTTTCTCCTTACATTTAGCTGGAATTTCGTCAATTTTAGGGGCAATTAATTTTATCACAACAATTATTAACATAAAAATAAATGGACTATCATTTGATCAAATACCTTTATTTGTATGAGCTGTAGGAATTACCGCATTATTATTACTCCTATCTTTACCAGTACTAGCAGGAGCAATCACTATATTACTAACTGATCGAAACCTAAACACATCATTTTTCGACCCTGCTGGAGGAGGAG--------';
 	
 	/*
 	>DISMA003-17_Phragmatopoma_californica_COI-5P
@@ -356,8 +411,8 @@ if (0)
 	$seq1 = '---------NNNTGGTCAACAAATCATAAAGATATTGGCACACTATATTTTATATTTGGAATTTGATCAGGGCTTTTAGGCACTTCAATAAGACTCCTTATTCGAGCTGAGTTAGGCCAACCA---GGATCTTTATTAGGTAGCGACCAACTTTACAATACAATTGTAACCGCCCATGCTTTTTTAATAATTTTCTTTCTTGTTATACCAGTATTTATTGGAGGATTTGGTAATTGATTACTTCCTTTAATACTCGGGGCACCAGATATAGCATTTCCTCGTCTAAATAATATAAGCTTTTGACTCCTTCCACCAGCACTAACTCTTTTAGTAGCTTCAAGAGCTGTAGAAAAGGGAGTTGGAACTGGATGAACGGTATATCCCCCCTTATCGGGAAATTTAGCTCATGCAGGACCATCTGTAGACCTGGCAATTTTTTCTCTTCACTTAGCGGGTATTTCTTCAATTTTAGGAGCCCTAAATTTTATTACGACCGTAATTAATATACGATGATCTGCTTTACGACTTGAACGTGTACCTTTATTTGTTTGATCAGTTAAAATTACAGCTGTTCTACTTCTATTATCTCTCCCAGTCTTAGCGGGGGCTATTACCATATTACTAACAGATCGAAATCTAAACACAGCATTTTTCGATCCTGCAGGAGGGGGGGACCCAGTTTTATACCAACACCTCTTCTGATTTTTTGGTCACCCTGAANNN---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------';
 	$seq2 = '---------------------------------------------------------------------------------------NNNAGCCTTTTAATTCGAGCTGAACTTGGCCAACCT---GGATCTCTTCTAGGTAGAGACCAACTTTATAACACTATTGTTACCGCTCATGCTTTCTTAATAATTTTCTTTCTTGTAATACCTACTTTTATTGGAGGATTCGGGAATTGACTTCTTCCTTTAATATTAGGTGCTCCTGATATGGCATTTCCACGATTAAATAATATAAGATTTTGGCTTTTACCCCCCTCACTAACTTTACTAGTTTCTTCTGCAGCTGTAGAAAAAGGAGTAGGAACAGGATGAACTGTATACCCTCCTTTATCAGGGAATTTAGCTCATGCAGGTCCATCTGTAGATTTAGCTATTTTTTCTCTTCATCTGGCAGGAGTCTCATCAATTTTAGGAGCTCTTAACTTTATCACTACAGTTATTAATATACGATCTAAAGGATTACGTCTTGAACGTATTCCTTTATTTGTTTGAGCCGTTGTAATTACAGCAGTTCTTCTTCTTTTATCCCTCCCAGTTTTAGCAGGAGCAATTACCATACTTCTGACCGACCGAAATCTTAATACATCTTTC---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------';
 	
-	$seq1 = clean_sequence($seq1);
-	$seq2 = clean_sequence($seq2);
+	$seq1 = swa_clean_sequence($seq1);
+	$seq2 = swa_clean_sequence($seq2);
 	
 	$alignment = swa('1', '2', $seq1, $seq2);
 	
