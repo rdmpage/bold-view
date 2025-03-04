@@ -114,11 +114,12 @@ echo '</script>' . "\n";
 	<ul>
 		<li><a href=".">' . get_text(['nav', 'home']) . '</a></li>
 		<li>
-			<input class="search" id="search" type="text" placeholder="' . get_text(['nav', 'search']) . '" autofocus>
+			<input class="search" id="search" type="text" placeholder="' . get_text(['nav', 'search']) . '">
 		</li>
 		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
 		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
 		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
+		<li><a href="https://github.com/rdmpage/bold-view/issues" target="_new">' . get_text(['nav', 'feedback']) . '</a></li>
 	</ul>
 	</nav>';
 	
@@ -168,7 +169,7 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode for a Fijian bee <i>Homalictus nadarivatu</i> with interesting tree <a href="record/GBMNC45937-20">GBMNC45937-20</a></li>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
 		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
-
+		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
 		echo '</ul>';
 	}
 	
