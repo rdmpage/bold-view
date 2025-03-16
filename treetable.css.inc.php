@@ -6,6 +6,10 @@
 	font-size:0.7em;
 }
 
+.tree-table td {
+	white-space:nowrap;
+}
+
 .tree-table .bin_uri a {
 	 color: var(--bin-a);
 }

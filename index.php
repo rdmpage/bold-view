@@ -64,6 +64,7 @@ echo '
 	width:auto;
 	height:40vh;	
 	background:gray;
+	border-radius: 0.5em;
 }
 
 
@@ -170,6 +171,11 @@ function default_display($error_msg = '')
 		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
 		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
+		
+		echo '<li>View recordset <a href="?recordset=DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
+		
+		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
+		
 		echo '</ul>';
 	}
 	
