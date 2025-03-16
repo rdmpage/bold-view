@@ -186,6 +186,8 @@ function swa($label1, $label2, $seq1, $seq2, $debug = false)
 	
 	$alignment->spans[0][1] = $max_i - 1;
 	$alignment->spans[1][1] = $max_j - 1;
+	
+	$alignment->d = 0;
 		
 	while ($value != 0)
 	{
@@ -198,6 +200,7 @@ function swa($label1, $label2, $seq1, $seq2, $debug = false)
 				$rows[1][] = "|";
 			} else {
 				$rows[1][] = " ";
+				$alignment->d++;
 			}	
 			
 			$i--;
@@ -225,6 +228,7 @@ function swa($label1, $label2, $seq1, $seq2, $debug = false)
 		$value = $H[$i][$j];
 	}
 	
+	
 	$alignment->spans[0][0] = $i;
 	$alignment->spans[1][0] = $j;
 	
@@ -241,6 +245,8 @@ function swa($label1, $label2, $seq1, $seq2, $debug = false)
 		join('', $rows[2])
 	);
 	
+	$alignment->p = $alignment->d / strlen($alignment->text[0]);	
+			
 	return $alignment;
 }
 
@@ -276,7 +282,7 @@ function show_alignment($alignment)
 	$seq1_pos_end = $alignment->spans[0][1];
 	$seq2_pos_end = $alignment->spans[1][1];
 
-	//$text .= "score=" . $alignment->score . "\n";
+	$text .= "differences=" . $alignment->d . " (p=" . round($alignment->p, 3) . ")\n";
 	
 	for ($i = 0; $i < $num_chunks; $i++)
 	{
