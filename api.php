@@ -301,11 +301,11 @@ function display_barcode_related ($id, $compute_tree = false, $limit=10, $format
 
 //----------------------------------------------------------------------------------------
 // BIN
-function display_bin ($id, $format = '', $callback = '')
+function display_bin ($id, $limit = 100, $format = '', $callback = '')
 {
 	$status = 404;
 	
-	$doc = get_bin($id);
+	$doc = get_bin($id, $limit);
 	
 	if ($doc)
 	{
@@ -699,7 +699,7 @@ function main()
 		{
 			if (!$handled)
 			{
-				display_bin($bin, $format, $callback);
+				display_bin($bin, $limit, $format, $callback);
 				$handled = true;
 			}			
 		}

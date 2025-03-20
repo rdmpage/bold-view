@@ -6,3 +6,14 @@
 
 BOLD:AAF8217 has multiple taxonomic labels, would be a nice example to explore.
 
+## ABLCV357-09 also in GBIF but errors in specimen codes
+
+ABLCV357-09 has `sampleid` CSU-CPG-LEP002307, there is a GBIF record https://www.gbif.org/occurrence/2432301357 with `catalogNumber` CSU_ENT1055698 that matches this record. Collection dates are similar, `2004-09-12` and `2004-09-11`, but note that verbatim date is a range.
+
+However 2432301357 has occurrence remarks:
+
+> Barcode of Life DNA Voucher Specimen CSU_CPG_LEP002307 BOLD ID ABLCU357-09.
+
+Note the “U” not “V”. However record ABLCU357-09 says “CSU-CPG-LEP001357”, so something is wrong.
+
+ 

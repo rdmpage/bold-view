@@ -500,7 +500,7 @@ function get_barcode_images($processid)
 
 //----------------------------------------------------------------------------------------
 // Images for a BIN
-function get_bin_images($bin_uri) 
+function get_bin_images($bin_uri, $limit = 500) 
 {
 	global $db;
 	
@@ -508,7 +508,7 @@ function get_bin_images($bin_uri)
 
 	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title FROM boldvector 
 	INNER JOIN boldimage USING(processid)
-	WHERE bin_uri='" . $bin_uri . "'";
+	WHERE bin_uri='" . $bin_uri . "' LIMIT " . $limit;
 	$result = pg_query($db, $sql);
 	
 	while ($row = pg_fetch_assoc($result)) 
@@ -521,7 +521,7 @@ function get_bin_images($bin_uri)
 
 //----------------------------------------------------------------------------------------
 // Records for a BIN
-function get_bin($bin_uri) 
+function get_bin($bin_uri, $limit = 500) 
 {
 	global $db;
 	
@@ -531,7 +531,7 @@ function get_bin($bin_uri)
 	// List of members of this BIN
 	$obj->hits = array();
 	
-	$sql = "SELECT *, ST_AsText(coord) AS point FROM boldvector WHERE bin_uri='" . $bin_uri . "'";
+	$sql = "SELECT *, ST_AsText(coord) AS point FROM boldvector WHERE bin_uri='" . $bin_uri . "' LIMIT " . $limit;
 	$result = pg_query($db, $sql);
 	
 	while ($row = pg_fetch_assoc($result)) 
@@ -549,7 +549,7 @@ function get_bin($bin_uri)
 	$obj->aggregations = get_aggregations($obj->hits, ['identification', 'lineage']);
 	
 	// images
-	$obj->images = get_bin_images($bin_uri);
+	$obj->images = get_bin_images($bin_uri, $limit);
 	if (count($obj->images) == 0)
 	{
 		unset($obj->images);

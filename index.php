@@ -173,6 +173,9 @@ function default_display($error_msg = '')
 		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
 		
 		echo '<li>View recordset <a href="?recordset=DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
+		echo '<li>View recordset <a href="?recordset=DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';
+		
+		
 		
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
 		
@@ -443,7 +446,7 @@ function make_graph($value_counts)
 	{
 		$label = $node->label;
 			
-		$dot .= 'node [fontsize="10, "';
+		$dot .= 'node [fontsize="10",';
 		
 		if (isset($node->count))
 		{
@@ -484,9 +487,9 @@ function make_graph($value_counts)
 }
 
 //----------------------------------------------------------------------------------------
-function display_bin ($id)
+function display_bin ($id, $limit = 100)
 {
-	$doc = get_bin($id);
+	$doc = get_bin($id, $limit);
 	
 	if ($doc)
 	{
@@ -909,6 +912,8 @@ function display_recordset($id)
 	if ($doc)
 	{	
 		$title = sprintf(get_text(['recordset', 'title']), $doc->id);
+		
+		$filter = 'recordset:' . $id;
 	
 		html_start($title);
 		
@@ -927,6 +932,8 @@ function display_recordset($id)
 		// map
 		echo '<h2>'. get_text(['recordset', 'map']) . '</h2>';
 		echo '<p>'. get_text(['recordset', 'map_lede']) . '</p>';
+		
+		echo '<p><a href="map/filter=' . $filter . '" target="_new">' . get_text(['recordset', 'map_big']) . '</a></p>';
 
 		echo '<div id="filtered_map"></div>';
 		
@@ -937,7 +944,7 @@ function display_recordset($id)
 		
 		echo '</div>';
 		
-		$filter = 'recordset:' . $id;
+		
 		
 	echo '<script>
 			create_large_map("filtered_map", false, "' . $filter . '");';
@@ -981,6 +988,8 @@ function main()
 		default_display($error_msg);
 		exit(0);			
 	}	
+	
+	$limit = 100; // arbitrary limit on some queries
 	
 	// be flexible in input, either processid, barcode, or record
 	if (!$handled)
@@ -1027,7 +1036,7 @@ function main()
 		{
 			if (!$handled)
 			{
-				display_bin($bin);
+				display_bin($bin, $limit);
 				$handled = true;
 			}			
 		}

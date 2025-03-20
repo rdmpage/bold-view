@@ -64,6 +64,7 @@ en:
     lede: A dataset comprises a set of barcodes.
     map: Map
     map_lede: Localities of barcodes in this dataset.
+    map_big: View on big map.
     title: Dataset %s
     
   taxonomy:
