@@ -20,20 +20,17 @@ require_once('tree/tree-drawer.php');
 require_once('tree/tree-parse.php');
 require_once('tree/utils.php');
 
-
-
 //----------------------------------------------------------------------------------------
 function sequence_to_embedding ($text)
 {
 	// remove newlines (in case this is a FASTA-style chunked sequence)
-	$text = preg_replace('/[0-9\s]/', '', $text);
+	$text = preg_replace('/[0-9\s\.]/', '', $text);
 	$text = preg_replace('/\R/u', '', $text);
 	
 	$embedding = sequence_to_vector($text);
 	
 	return $embedding;
 }
-
 
 //----------------------------------------------------------------------------------------
 function get_nj_tree($obj, $root = true)
@@ -164,7 +161,10 @@ function get_barcode_related($processid, $limit)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+	
 	$obj = new stdclass;
+	$obj->took = 0;
 	$obj->processid = $processid;
 	$obj->hits = array();
 	
@@ -207,6 +207,9 @@ function get_barcode_related($processid, $limit)
 			}
 		}
 	}
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);	
 
 	return $obj;	
 }
@@ -255,7 +258,11 @@ function get_similar_sequences($text, $marker_code = 'COI-5P', $limit = 100)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+
 	$obj = new stdclass;
+	$obj->took = 0;
+		
 	$obj->query = $text;
 	$obj->embedding = json_encode(sequence_to_embedding($text));
 	$obj->hits = array();
@@ -267,8 +274,6 @@ function get_similar_sequences($text, $marker_code = 'COI-5P', $limit = 100)
 	$q->processid = "query";
 	
 	$obj->hits[] = $q;
-	
-	
 
 	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point, embedding <-> '" 
 			. pg_escape_string($db, $q->embedding) 
@@ -282,8 +287,6 @@ function get_similar_sequences($text, $marker_code = 'COI-5P', $limit = 100)
 			. "' AS distance 
 			FROM boldvector 
 			WHERE boldvector.marker_code='" . $marker_code . "' ORDER BY distance LIMIT " . $limit;
-			
-			
 
 	$result = pg_query($db, $sql);
 	
@@ -302,6 +305,9 @@ function get_similar_sequences($text, $marker_code = 'COI-5P', $limit = 100)
 	$obj->collections = get_collection($obj->hits, ['insdc_acs']);
 	
 	$obj->aggregations = get_aggregations($obj->hits, ['identification']);	
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);		
 
 	return $obj;	
 }
@@ -312,7 +318,10 @@ function get_records_from_id_list($ids)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+	
 	$obj = new stdclass;
+	$obj->took = 0;
 	$obj->hits = array();
 	
 	$set = array();
@@ -340,6 +349,9 @@ function get_records_from_id_list($ids)
 	$obj->collections = get_collection($obj->hits, ['insdc_acs']);
 	
 	$obj->aggregations = get_aggregations($obj->hits, ['identification']);	
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);		
 
 	return $obj;	
 }
@@ -525,7 +537,10 @@ function get_bin($bin_uri, $limit = 500)
 {
 	global $db;
 	
+	$startTime = microtime(true);
+	
 	$obj = new stdclass;
+	$obj->took = 0;
 	$obj->bin_uri = $bin_uri;
 	
 	// List of members of this BIN
@@ -554,6 +569,9 @@ function get_bin($bin_uri, $limit = 500)
 	{
 		unset($obj->images);
 	}
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);
 
 	return $obj;	
 }
@@ -679,8 +697,7 @@ function tree_labels($obj, $newick)
 	
 	// 4. sort rows in leaf order
 	ksort($table->rows);
-	
-	
+		
 	return $table;
 }
 
@@ -753,7 +770,6 @@ function identifier_panel_link($namespace, $value)
 function output_tree_table($svg, $table, $selection = [])
 {
 	$bin_index = array();
-
 
 	$html = '';
 	
@@ -849,7 +865,11 @@ function get_geo($geometry, $filter_string ='', $limit = 100)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+	
 	$obj = new stdclass;
+	$obj->took = 0;
+		
 	$obj->geometry = $geometry;
 	
 	$filters = array();
@@ -892,7 +912,10 @@ function get_geo($geometry, $filter_string ='', $limit = 100)
 	$obj->aggregations = get_aggregations($obj->hits, ['identification']);
 	
 	$obj->hits = decorate_hits_with_images($obj->hits);
-
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);
+	
 	return $obj;	
 }
 
@@ -901,6 +924,8 @@ function get_taxon_from_taxid($taxid)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+
 	$obj = null;
 	
 	$sql = "SELECT * FROM boldtaxonomy WHERE id='" . $taxid . "' LIMIT 1";
@@ -933,11 +958,18 @@ function get_taxon_from_taxid($taxid)
 		if (!$obj)
 		{
 			$obj = new stdclass;
-			$obj->id = $taxid;
+			$obj->took = 0;		
+			$obj->id = $taxid;				
 		}
 		
 		// schema.org term
 		$obj->spatialCoverage = $row['envelope'];
+	}
+	
+	if ($obj)
+	{	
+		$endTime = microtime(true);	
+		$obj->took = round($endTime - $startTime, 2);	
 	}
 	
 	return $obj;
@@ -1008,13 +1040,9 @@ function get_taxon_from_name($name, $rank = '')
 		{
 			$obj = pq_record_to_obj($row);
 		}
-		
-		
-		
-		
+				
 	}	
-	
-	
+		
 	return $obj;
 }
 
@@ -1023,8 +1051,12 @@ function get_taxon_from_name($name, $rank = '')
 function get_paged_barcodes($page_start = 0, $page_size = 100, $filter_string ='')
 {
 	global $db;
+
+	$startTime = microtime(true);		
 	
 	$obj = new stdclass;
+	$obj->took = 0;
+		
 	$obj->offset = $page_start;
 	$obj->size = $page_size;
 	
@@ -1062,7 +1094,10 @@ function get_paged_barcodes($page_start = 0, $page_size = 100, $filter_string ='
 	}
 	
 	$obj->hits = decorate_hits_with_images($obj->hits);	
-
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);	
+	
 	return $obj;	
 }
 
@@ -1072,7 +1107,10 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+
 	$obj = new stdclass;
+	$obj->took = 0;
 	$obj->offset = $page_start;
 	$obj->size = $page_size;
 	
@@ -1109,6 +1147,9 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 		$hit = pq_record_to_obj($row);
 		$obj->hits[] = $hit;
 	}
+	
+	$endTime = microtime(true);	
+	$obj->took = round($endTime - $startTime, 2);		
 
 	return $obj;	
 }
@@ -1119,6 +1160,8 @@ function get_recordset($id)
 {
 	global $db;
 	
+	$startTime = microtime(true);	
+
 	$obj = null;
 	
 	// how many barcodes?
@@ -1132,9 +1175,10 @@ function get_recordset($id)
 	while ($row = pg_fetch_assoc($result))
 	{
 		if (!$obj)
-		{
+		{			
 			$obj = new stdclass;
-			$obj->id = $id;
+			$obj->took = 0;
+			$obj->id = $id;			
 		}
 		
 		$obj->num_barcodes = (Integer)$row['c'];
@@ -1153,11 +1197,18 @@ function get_recordset($id)
 		if (!$obj)
 		{
 			$obj = new stdclass;
+			$obj->took = 0;						
 			$obj->id = $id;
 		}
 		
 		// schema.org term
 		$obj->spatialCoverage = $row['envelope'];
+	}
+	
+	if ($obj)
+	{
+		$endTime = microtime(true);	
+		$obj->took = round($endTime - $startTime, 2);	
 	}
 	
 	return $obj;	
