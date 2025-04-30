@@ -49,12 +49,15 @@ en:
     identification: Identification
     images: Images
     images_lede: Images of sample.
-    insdc_acs: Genbank
+    insdc_acs: GenBank accession
     lede: A barcode is a DNA sequence obtained from a sample, typically an individual organism.
     lineage: Taxonomy
     lineage_lede: Taxonomic classification of barcode.    
     map: Map
     map_lede: Where barcode was sampled.
+    museumid: Catalogue number
+    nuc: Sequence
+    nuc_lede: DNA barcode sequence.    
     related: Related barcodes
     related_lede: Neighbour-joining tree of sequences most similar to this barcode based on shared k-mers. Position of barcode is highlighted.
     title: Barcode %s

@@ -53,7 +53,7 @@ function create_map(id) {
 		layerAttrib = 'Map © <a href="https://www.thunderforest.com/">Thunderforest</a>, data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';	
 	} else {
 	 // default OpenStreetMap
-	 layerUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	 layerUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	 layerAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';	
 	}
 	
@@ -147,7 +147,7 @@ function create_large_map(id, controls = true, filter = '') {
 		layerAttrib = 'Map © <a href="https://www.thunderforest.com/">Thunderforest</a>, data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';	
 	} else {
 	 // default OpenStreetMap
-	 layerUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	 layerUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	 layerAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';	
 	}
 	

@@ -228,10 +228,12 @@ function display_barcode($id)
 		
 		echo '<div class="main">';
 		
+		//print_r($doc);
+		
 		echo '<h1>' . $title . '</h1>';
 		echo '<p>' . get_text(['record', 'lede']) . '</p>';
 		
-		$keys = array('identification', 'insdc_acs', 'bin_uri');
+		$keys = array('identification', 'insdc_acs', 'bin_uri', 'museumid');
 		
 		echo '<h3>' . get_text(['record', 'details']) . '</h3>';
 		echo '<p>' . get_text(['record', 'details_lede']) . '</p>';
@@ -284,6 +286,19 @@ function display_barcode($id)
 				echo '</div>';
 			}	
 		}
+		
+		if (isset($doc->nuc))
+		{
+			echo '<h3>' . get_text(['record', 'nuc']) . '</h3>';
+			echo '<p>' . get_text(['record', 'nuc_lede']) . '</p>';
+			
+			$nuc_formatted = chunk_split($doc->nuc, 60);
+			
+			echo '<div style="font-family:monospace;white-space:pre-wrap;">';
+			echo $nuc_formatted;			
+			echo '</div>';		
+		}
+
 					
 		if (isset($doc->feature))
 		{
@@ -719,8 +734,8 @@ function display_taxonomy ($taxid = 713, $k = 40)
 					// map
 					map_add_data_layer( "taxon:" + encodeURIComponent(data.name));
 					
-					if (data.spatialCoverage) {
-						console.log(JSON.stringify(data.spatialCoverage));
+					if (data.spatialCoverage) {					
+						console.log("spatialCoverage=" + JSON.stringify(data.spatialCoverage));
 						map_fit_bounds(data.spatialCoverage);
 					} else {
 						map_fit_bounds({"type":"Polygon","coordinates":[[[-180,90],[180,90],[180,-90],[-180,-90],[-180,90]]]});
@@ -938,6 +953,16 @@ function display_recordset($id)
 		echo '<div id="filtered_map"></div>';
 		
 		// images
+		echo '<h2>Images</h2>';
+		
+		echo '<p class="warning">This is a placeholder until I add a gallery for images.</p>';
+		
+		echo '<div class="gallery">
+		<ul id="images">
+		</ul>
+		<!-- <button id="more_images">More</button> -->
+		</div>';
+		
 		
 		// barcodes
 		
@@ -953,6 +978,41 @@ function display_recordset($id)
 	{
 		echo 'map_fit_bounds(' . json_encode($doc->spatialCoverage) . ');';
 	}
+	
+	// for now just get a subset of images, need a more elegant solution,
+	// something like GBIF's "more" button in their gallery
+	
+	echo 'function recordset_images(id) {									
+			var url = "api.php?recordset=" + id + "&page=1&limit=100&images";
+			
+			fetch(url).then(
+				function(response){
+					if (response.status != 200) {
+						console.log("Looks like there was a problem. Status Code: " + response.status);
+						return;
+					}
+			
+					response.json().then(function(data) {
+						var html = "";
+						
+						for (var i in data.hits) {
+							html += "<li>";
+							html += "<img onclick=\"show_panel_snippet(&quot;api.php?image=" + encodeURI(data.hits[i].url) +"&format=html&quot;)\" src=\"" + data.hits[i].url + "\"></li>";
+						}						
+						
+						html += "<li id=\"last\"></li>";
+						
+						var image_elment = document.getElementById("images");
+						
+						var current_html = image_elment.innerHTML;
+
+						image_elment.innerHTML = current_html + html;
+					});
+				});
+		}';
+	
+	
+	echo 'recordset_images("' . $id . '");';
 	
 	echo '</script>';
 		

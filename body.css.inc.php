@@ -77,3 +77,15 @@ button {
 	display:block;
 	height:1em;
 }
+
+.error {
+	padding:1em;
+	background-color:red;
+	color: white;
+}
+
+.warning {
+	padding:1em;
+	background-color:orange;
+	color: white;
+}

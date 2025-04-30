@@ -64,6 +64,7 @@ function pq_record_to_obj($row)
 				case 'insdc_acs':
 				case 'embedding':
 				case 'nuc':
+				case 'museumid':
 				
 				// image
 				case 'url':
@@ -135,6 +136,13 @@ function get_barcode($processid)
 	$hit = null;
 
 	$sql = "SELECT *, ST_AsText(coord) AS point FROM boldvector WHERE processid='" . $processid . "'";
+
+	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point 
+		FROM boldvector 
+		INNER JOIN boldmeta USING(processid)
+		WHERE processid='" . $processid . "'";
+	
+	
 	$result = pg_query($db, $sql);
 	
 	while ($row = pg_fetch_assoc($result))

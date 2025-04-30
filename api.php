@@ -36,6 +36,10 @@ function display_image ($id, $format = '', $callback = '')
 					switch ($k)
 					{
 						case 'processid':
+							$html .= '<dt>' . get_text(['image', $k]) . '</dt>';
+							$html .= '<dd><a href="record/' . $v . '">' . $v .  '</a></dd>';
+							break;
+							
 						case 'title':
 						case 'view':
 							$html .= '<dt>' . get_text(['image', $k]) . '</dt>';
@@ -776,10 +780,15 @@ function main()
 			$page = 0;
 			if (isset($_GET['page']))
 			{	
-				$page = $_GET['page'];
+				$page = $_GET['page'] - 1;
 			}	
 			
-			$page_size = 100;
+			// page size
+			$page_size = 10;
+			if (isset($_GET['limit']))
+			{	
+				$page_size = $_GET['limit'];
+			}	
 			
 			$offset = $page * $page_size;
 		
@@ -789,7 +798,7 @@ function main()
 			{
 				if (isset($_GET['images']))
 				{
-					display_paged_images($offset, 100, $filter, $callback);				
+					display_paged_images($offset, $page_size, $filter, $callback);				
 					$handled = true;
 				}
 			}
@@ -799,7 +808,7 @@ function main()
 				if (isset($_GET['records']))
 				{						
 					// list of barcodes
-					display_paged_barcodes($offset, 100, $filter, $callback);
+					display_paged_barcodes($offset, $page_size, $filter, $callback);
 					$handled = true;
 				}
 			}
