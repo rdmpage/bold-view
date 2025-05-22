@@ -44,6 +44,7 @@ en:
     
   record:
     bin_uri: BIN ID
+    datasets: Datasets
     details: Details
     details_lede: Data for this barcode.
     identification: Identification

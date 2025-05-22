@@ -172,10 +172,10 @@ function default_display($error_msg = '')
 		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
 		
-		echo '<li>View recordset <a href="?recordset=DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
-		echo '<li>View recordset <a href="?recordset=DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';
+		echo '<li>View recordset <a href="recordset/DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
+		echo '<li>View recordset <a href="recordset/DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';
 		
-		
+		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
 		
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
 		
@@ -233,7 +233,7 @@ function display_barcode($id)
 		echo '<h1>' . $title . '</h1>';
 		echo '<p>' . get_text(['record', 'lede']) . '</p>';
 		
-		$keys = array('identification', 'insdc_acs', 'bin_uri', 'museumid');
+		$keys = array('identification', 'insdc_acs', 'bin_uri', 'museumid', 'datasets');
 		
 		echo '<h3>' . get_text(['record', 'details']) . '</h3>';
 		echo '<p>' . get_text(['record', 'details_lede']) . '</p>';
@@ -599,7 +599,7 @@ function display_bin ($id, $limit = 100)
 			foreach ($doc->images as $image)
 			{
 				echo '<li>';
-				echo '<div>' . $image->title . '</div>';
+				// echo '<div>' . $image->title . '</div>';
 				echo '<img onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
 				echo '</li>';
 			}

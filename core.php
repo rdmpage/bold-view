@@ -117,6 +117,25 @@ function pq_record_to_obj($row)
 					$hit->{$k} = $v;
 					break;
 					
+				// data set membership
+				case 'bold_recordset_code_arr':
+					$v = preg_replace('/^\{/', '', $v);
+					$v = preg_replace('/\}$/', '', $v);
+					$sets = explode(",", $v);
+					$hit->datasets = array();
+					foreach ($sets as $element)
+					{
+						if (preg_match('/^DS-/', $element))
+						{
+							$hit->datasets[] = $element;
+						}
+					}
+					if (count($hit->datasets) == 0)
+					{
+						unset($hit->datasets);
+					}
+					break;
+					
 				default:
 					break;
 			}
@@ -725,6 +744,13 @@ function identifier_link($namespace, $value)
 		case 'processid':
 			// $html = '<a href="?' . $namespace . '=' . urlencode($value) . '">' . $value . '</a>';
 			$html = '<a href="record/' . $value . '">' . $value . '</a>';			
+			break;
+			
+		case 'datasets':
+			foreach ($value as $v)
+			{
+				$html .= '<a href="recordset/' . $v . '">' . $v . '</a>' . ' ';	
+			}
 			break;
 						
 		default:
