@@ -997,7 +997,7 @@ function get_taxon_from_taxid($taxid)
 		}
 		
 		// schema.org term
-		$obj->spatialCoverage = $row['envelope'];
+		$obj->spatialCoverage = force_polygon($row['envelope']);
 	}
 	
 	if ($obj)
@@ -1236,7 +1236,7 @@ function get_recordset($id)
 		}
 		
 		// schema.org term
-		$obj->spatialCoverage = $row['envelope'];
+		$obj->spatialCoverage = force_polygon($row['envelope']);
 	}
 	
 	if ($obj)
@@ -1248,6 +1248,40 @@ function get_recordset($id)
 	return $obj;	
 }
 
+//----------------------------------------------------------------------------------------
+// If GeoJSON spatial coverage is a Point convert to an enclosing polygon, 
+// useful for maps where we have only one point to display but want to provide
+// sensible bounds for viewing the map.
+function force_polygon($spatialCoverage)
+{
+	$spatial = json_decode($spatialCoverage);
+	if ($spatial && $spatial->type == 'Point')
+	{
+		$padding = 2; // 2° buffer around point locality
+	
+		$minx = max(-180, $spatial->coordinates[0] - $padding);
+		$maxx = min(180, $spatial->coordinates[0] + $padding);
 
+		$miny = max(-90, $spatial->coordinates[1] - $padding);
+		$maxy = min(90, $spatial->coordinates[1] + $padding);
+		
+		$coordinates = array();
+		
+		$coordinates[] = [$minx, $maxy];
+		$coordinates[] = [$maxx, $maxy];
+		$coordinates[] = [$maxx, $miny];
+		$coordinates[] = [$minx, $miny];
+		$coordinates[] = [$minx, $maxy];
+		
+		$feature = new stdclass;
+		$feature->type = 'Polygon';
+		$feature->coordinates = array($coordinates);
+		
+		$spatialCoverage = json_encode($feature);
+	}
+	
+
+	return $spatialCoverage;
+}
 
 ?>
