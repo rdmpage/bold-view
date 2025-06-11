@@ -176,6 +176,11 @@ function default_display($error_msg = '')
 		echo '<li>View recordset <a href="recordset/DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';
 		
 		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
+
+		echo '<li>View recordset <a href="recordset/DS-ALLSAT">DS-ALLSAT</a> containing lots of images of saturnids (no DOI).</li>';
+		
+		
+		
 		
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
 		

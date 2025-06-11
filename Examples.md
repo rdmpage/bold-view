@@ -1,5 +1,32 @@
 # BOLD Examples to explore
 
+## Type specimens
+
+This will be a challenge as often type sequences are short, and these don’t work well with k-mer based vector searches as the vectors for a subsequence of a larger sequence will often look rather different.
+
+Types are poorly flagged in the BOLD data packages. There are some datasets that aggregate them, e.g. [DS-SATYP1](https://bold-view-bf2dfe9b0db3.herokuapp.com/recordset/DS-SATYP1)
+
+### SAMPA1374-19 Solus parvifenestrata
+
+[](https://bold-view-bf2dfe9b0db3.herokuapp.com/record/SAMPA1374-19)
+
+```
+AACTTTATACTTCATTTTTGGTATTTGAGCNGGAATAGTAGGAACTTCACTAAGATTACT
+AATTCGAGCAGAATTAGGAACTCCTGGTTCTTTAATTGGAGATGATCAAATTTATAACAC
+TATTGTGACA
+```
+ 
+
+
+
+## DS-ELADIS
+
+DNA barcodes from type specimens https://doi/org/10.1111/1755-0998.12361 https://pmc.ncbi.nlm.nih.gov/articles/PMC4964951/
+
+Interesting discussion of linking types to BINs, and a tool called BLOG https://pmc.ncbi.nlm.nih.gov/articles/PMC2775153/
+
+
+
 ## GBAAW82677-24 [no insdc_acs, bad taxonomy]
 
 [GBAAW82677-24](https://bold-view-bf2dfe9b0db3.herokuapp.com/record/GBAAW82677-24) “Mined from GenBank, NCBI” but no `insdc_acs` value, but does have `sampleid` of `OQ553230` which is in GenBank [OQ553230](https://www.ncbi.nlm.nih.gov/nuccore/OQ553230) from _Jaydia truncata_ with publication doi:https://doi.org/10.1002/ece3.10822 https://pmc.ncbi.nlm.nih.gov/articles/PMC10711522/. BOLD has this as identified to “Chordata” and it clusters with BIN [BOLD:AAF8217](https://bold-view-bf2dfe9b0db3.herokuapp.com/bin/BOLD:AAF8217) but is not part of the BIN in BOLD.
@@ -46,5 +73,32 @@ Nice pics of specimens, potential links between paper, specimens, BOLD, etc.
 ## Barcodes identified in GenBank but not BOLD
 
 GBCOC5986-23 is “Chordata” in BOLD, but Gloydius liupanensis in Genbank https://www.ebi.ac.uk/ena/browser/view/OQ416193. Why the difference?
+
+## Barcodes submitted to Genbank and GBIF, mined by BOLD, “DNA barcoding of black flies (Diptera: Simuliidae) in Indonesia”
+
+Article https://doi.org/10.1186/s13071-023-05875-1, data in GBIF  https://www.gbif.org/dataset/c80987f7-f87a-4ae3-a2cc-ccd59bc951e8 (https://doi.org/10.15468/h5jh4z), accessions OQ117897–OQ117982 (listed in https://doi.org/10.1186/s13071-023-05875-1).
+
+Lots of incomplete links, can we connect? BIN is quite messy https://bold-view-bf2dfe9b0db3.herokuapp.com/bin/BOLD:AAH9537
+
+GBIF dataset has additional sequences, e.g. https://www.gbif.org/occurrence/4010748333 which is https://www.ncbi.nlm.nih.gov/nuccore/MW548991, GBIF record has link to paper (see both web page and raw data):
+
+```
+"extensions": {
+    "http://rs.gbif.org/terms/1.0/DNADerivedData": [
+      {
+        "amplificationReactionVolume": "20",
+        "amplificationReactionVolumeUnit": "µl",
+        "nucl_acid_amp": "https://doi.org/10.1016/j.actatropica.2021.105889",
+        "pcr_cond": "initial denaturation:94_2,94_0.5;annealing:50_0.75;elongation:72_0.75;final elongation:72_5;40",
+        "pcr_primer_name_forward": "LCO1490",
+        "pcr_primer_name_reverse": "HCO2198",
+        "pcr_primer_reference": "Folmer, O., Black, M., Hoeh, W., Lutz, R., & Vrijenhoek, R. (1994). DNA primers for amplification of mitochondrial cytochrome c oxidase subunit I from diverse metazoan invertebrates. Molecular marine biology and biotechnology, 3(5), 294–299.",
+        "target_gene": "COI"
+      }
+    ]
+  },
+```
+
+
 
  
