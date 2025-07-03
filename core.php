@@ -75,6 +75,10 @@ function pq_record_to_obj($row)
 					$hit->{$k} = $v;
 					break;
 					
+				case 'nuc_basecount':
+					$hit->{$k} = (Integer)$v;
+					break;
+					
 				// coordinates as GeoJSON
 				case 'point':
 					if (preg_match('/POINT\((.*)\s+(.*)\)/', $row['point'], $m))

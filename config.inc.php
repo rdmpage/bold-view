@@ -25,5 +25,6 @@ else
 
 // Default language is English
 $config['lang'] = 'en';
+//$config['lang'] = 'zh';
 
 ?>

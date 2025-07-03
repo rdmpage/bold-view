@@ -35,6 +35,7 @@ en:
     view: View
     
   nav:
+    api: API
     blast: DNA Search  
     feedback: Feedback
     home: Home

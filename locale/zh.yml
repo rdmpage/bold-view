@@ -1,0 +1,17 @@
+zh:
+  language: 中文
+  locale: "zh_CN"
+  "true": "是的"
+  "false": "否"
+
+
+
+
+  nav:
+    api: API
+    blast: DNA 搜索  
+    feedback: 反馈
+    home: 首页
+    map: 地图
+    search: 搜索
+    taxonomy: 分类法

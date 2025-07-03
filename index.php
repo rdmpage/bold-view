@@ -120,6 +120,7 @@ echo '</script>' . "\n";
 		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
 		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
 		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
+		<li><a href="api">' . get_text(['nav', 'api']) . '</a></li>
 		<li><a href="https://github.com/rdmpage/bold-view/issues" target="_new">' . get_text(['nav', 'feedback']) . '</a></li>
 	</ul>
 	</nav>';
@@ -664,6 +665,8 @@ function display_map ($filter = "")
 //----------------------------------------------------------------------------------------
 function display_taxonomy ($taxid = 713, $k = 40)
 {
+	global $config;
+	
 	// we need id and name
 	$taxon_obj = get_taxon_from_taxid($taxid);
 
@@ -761,6 +764,11 @@ WHERE
   ?wikipedia_en schema:about ?item .
   ?wikipedia_en schema:isPartOf <https://en.wikipedia.org/> .
   BIND( REPLACE( STR(?wikipedia_en),"https://en.wikipedia.org/wiki/","" ) AS ?enwiki) .
+  OPTIONAL {
+     ?wikipedia_zh schema:about ?item .
+     ?wikipedia_zh schema:isPartOf <https://zh.wikipedia.org/> .
+     BIND( REPLACE( STR(?wikipedia_zh),"https://zh.wikipedia.org/wiki/","" ) AS ?zhwiki) .  
+  }
 }`;
 		
 		url = "https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=" + encodeURIComponent(sparql);
@@ -781,10 +789,42 @@ WHERE
 				response.json().then(function(data) {
 					
 					if (data.results.bindings) {
-						var enwiki = data.results.bindings[0].enwiki.value;
+					
+					    var wiki = { 
+					    	dbpedia: null, // slug for DBPedia
+					    	wikipedia: {} // details of wiki pages
+					    };
+					    
+					    for (var i in data.results.bindings[0]) {
+					    
+					       if (data.results.bindings["wikipedia_en"]) {
+					          wiki.wikipedia["en"] = {
+					             page: data.results.bindings[0]["wikipedia_en"].value,
+					             wiki: "Wikipedia"
+					          }
+					       }
+
+					       if (data.results.bindings[0]["wikipedia_zh"]) {
+					           wiki.wikipedia["zh"] = {
+					             page: data.results.bindings[0]["wikipedia_zh"].value,
+					             wiki: "维基百科"
+					          }
+					       }
+
+                           // DBPedia resource is en_wiki slug
+					       if (data.results.bindings[0]["enwiki"]) {
+					          wiki.dbpedia = data.results.bindings[0]["enwiki"].value;
+					       }
+					    
+					    }
 						
 						// get summary from dbpedia
-						dbpedia_summary(enwiki, "taxon_info");
+						var language = "' . $config['lang'] . '";
+						if (!wiki.wikipedia[language]) {
+						    language = "en";
+						}
+						
+						dbpedia_summary(wiki,language, "taxon_info");
 					}
 					
 				});
@@ -793,8 +833,9 @@ WHERE
 		
 	}
 	
-	function dbpedia_summary(wikipedia, element_id) {
-		var url = "dbpedia_proxy.php?query=" + encodeURIComponent("DESCRIBE <http://dbpedia.org/resource/" + wikipedia + ">");
+	function dbpedia_summary(wiki, language, element_id) {
+	
+		var url = "dbpedia_proxy.php?query=" + encodeURIComponent("DESCRIBE <http://dbpedia.org/resource/" + wiki.dbpedia + ">");
 		
 		fetch(url).then(
 			function(response){
@@ -810,11 +851,11 @@ WHERE
 					for (var i in data) {
 						if (data[i]["http://www.w3.org/2000/01/rdf-schema#comment"]) {	
 							for (var j in data[i]["http://www.w3.org/2000/01/rdf-schema#comment"])	{	  			
-								if (data[i]["http://www.w3.org/2000/01/rdf-schema#comment"][j].lang == "en") {
+								if (data[i]["http://www.w3.org/2000/01/rdf-schema#comment"][j].lang == language) {
 									html = 
 									data[i]["http://www.w3.org/2000/01/rdf-schema#comment"][j].value 
 									+ " " 
-									+ "(from <a href=\"https://en.wikipedia.org/wiki/" + wikipedia + "\" target=\"_new\">Wikipedia</a>)"
+									+ "(<a href=\"" + wiki.wikipedia[language].page + "\" target=\"_new\">" + wiki.wikipedia[language].wiki + "</a>)"
 									;
 								}
 							}
@@ -1033,6 +1074,101 @@ function display_recordset($id)
 }
 
 //----------------------------------------------------------------------------------------
+// Home page, or badness happened
+function display_api()
+{
+	global $config;
+	
+	html_start();
+
+	echo '<div class="main">';
+	
+	echo '<h1>API</h1>';
+	
+	echo '<p>Documentation of the API (a work in progress)</p>';
+	
+	echo '<h2>Get one barcode: api.php?barcode=&lt;processid&gt;</h2>';
+	
+	echo '<p>Return information for an individual barcode. 
+	Each barcode is identified by a unique <b>processid</b>.</p>';
+	
+	echo '<p><b>Example:</b> <a href="' . $config['web_server'] . $config['web_root'] . 'api.php?record=SSDA1071-07" target="_new">api.php?record=SSDA1071-07</a></p>';
+	
+	echo '<p>A single barcode has a unique <code>processid</code>, it may also be assigned to a BIN, and
+	have a taxonmic identification. The <code>lineage</code> lists the taxonomic classifcation of
+	the barcode. The barcode itself is represented as a nucleotide sequence <code>nuc</code> and a vector (<code>embedding</code>)
+	of frequencies of the 1024 possible 5-mers for a DNA sequence (e.g., "AAAAA", "AAAAC", "AAAAG", etc.)
+	This vector is used to compare the similarity of barcodes. the barcode may also have information 
+	on where it	occurs, and a list of datasets that it belongs too.</p>';
+	
+	echo '<div style="font-family:monospace;white-space:pre-wrap;width=80%;overflow-x:auto;">
+{
+  "processid": "SSDA1071-07",
+  "identification": "Gonimbrasia anthina",
+  "lineage": [
+    "k__Animalia",
+    "p__Arthropoda",
+    "c__Insecta",
+    "o__Lepidoptera",
+    "f__Saturniidae",
+    "sf__Saturniinae",
+    "t__Bunaeini",
+    "g__Gonimbrasia",
+    "s__Gonimbrasia anthina"
+  ],
+  "marker_code": "COI-5P",
+  "embedding": "[0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0.003773585,0.00754717,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0.00754717,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0,0,0.003773585,0.00754717,0.003773585,0.003773585,0.00754717,0,0,0,0,0.003773585,0,0,0,0.003773585,0.00754717,0.011320755,0.011320755,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0.003773585,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0.003773585,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0.003773585,0,0.003773585,0.003773585,0,0.003773585,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0.003773585,0,0,0.003773585,0.003773585,0,0.00754717,0.01509434,0,0.003773585,0,0.003773585,0.003773585,0.003773585,0,0.003773585,0.00754717,0,0,0.00754717,0.003773585,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0.011320755,0.003773585,0.00754717,0.011320755,0,0.003773585,0.003773585,0,0.003773585,0,0.00754717,0.003773585,0.00754717,0,0.003773585,0.00754717,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0.00754717,0.003773585,0.003773585,0.003773585,0,0,0,0,0,0,0.003773585,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00754717,0,0,0,0,0,0,0.003773585,0,0,0.003773585,0,0,0,0,0,0.00754717,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0.003773585,0,0.00754717,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.00754717,0,0,0,0,0.003773585,0.003773585,0,0.00754717,0,0,0,0.00754717,0,0,0,0.00754717,0,0,0,0.003773585,0.00754717,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0.00754717,0.003773585,0,0,0,0,0,0,0,0.00754717,0,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0.00754717,0.00754717,0.00754717,0.003773585,0,0,0,0,0,0,0.003773585,0.003773585,0,0.003773585,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0.003773585,0.003773585,0,0,0.003773585,0,0.003773585,0,0.003773585,0.011320755,0,0,0.02264151,0,0,0,0,0,0.003773585,0,0.003773585,0,0,0,0,0.003773585,0,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0.00754717,0,0,0,0,0,0,0.003773585,0.018867925,0.003773585,0.003773585,0,0,0,0.003773585,0,0,0,0,0,0.018867925,0,0.003773585,0.003773585,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0,0.003773585,0,0,0,0,0,0,0,0,0.003773585,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0.00754717,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0.00754717,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.011320755,0,0.003773585,0.003773585,0,0,0,0,0.003773585,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.003773585,0,0.018867925,0,0.003773585,0,0,0,0,0.00754717,0,0.01509434,0,0,0.00754717,0,0,0,0.003773585,0.003773585,0.003773585,0,0,0.003773585,0,0,0,0.003773585,0,0,0.003773585,0,0,0,0.00754717,0,0,0,0,0.01509434,0,0,0,0,0,0,0.003773585,0.011320755,0,0,0.00754717,0.003773585,0.003773585,0,0,0.003773585,0,0.00754717,0,0.00754717,0.003773585,0.00754717,0.018867925]",
+  "nuc": "--------------------------------------TGGGAACTTCTATAAGCCTATTAATTCGAATAGAATTAGGAACTCCTGGATATTTAATTGGAAATGATCAAATTTATAATACTATCGTAACAGCTCACGCTTTTATTATAATTTTTTTCATAGTTATACCTATTATAATTGGAGGATTTGGAAATTGATTAATTCCATTAATATTAGGAGCACCAGATATAGCTTTCCCCCGAATAAATAATATAAGTTTTTGATTATTACCCCCTTCTTTAACTCTTTTAATTTTTGGAAGTATTGTT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+  "nuc_basecount": 269,
+  "datasets": [
+    "DS-GOMIM01",
+    "DS-BLDSAT",
+    "DS-ALLSAT",
+    "DS-SATBUN02",
+    "DS-SATYP1"
+  ],
+  "feature": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        12.948474,
+        6.2941685
+      ]
+    },
+    "properties": {
+      "name": "SSDA1071-07",
+      "identification": "Gonimbrasia anthina"
+    }
+  },
+  "status": 200
+}	
+
+</div>';
+
+	echo '<h3>Get related sequences: api.php?barcode=&lt;processid&gt;&related</h3>';
+	
+	echo '<p>If you add the <b>&related</b> parameter the API will return most similar 
+	sequences to the barcode. By default you will get the first 100 sequences. You can 
+	set the <b>&limit</b> parameter to say how many sequences you want.</p>';
+	
+	echo '<p>"Related" is measured using the similarity of the <i>k</i>-mer vectors for the sequences.</p>';
+	
+	echo '<p><b>Example:</b> <a href="' . $config['web_server'] . $config['web_root'] . 'api.php?record=SSDA1071-07&related&limit=10" target="_new">api.php?record=SSDA1071-07&related&limit=10</a></p>';
+
+	echo '<h2>Get a BIN: api.php?bin=&lt;bin_uri&gt;</h2>';
+	
+	echo '<p>Return a list of all the barcodes in the same BIN.</p>';
+	
+	echo '<p><b>Example:</b> <a href="' . $config['web_server'] . $config['web_root'] . 'api.php?bin=' . urlencode('BOLD:AAC2863') . '" target="_new">api.php?bin=' . urlencode('BOLD:AAC2863') . '</a></p>';
+
+	
+	echo '</div>';
+
+	html_end();	
+}
+
+//----------------------------------------------------------------------------------------
 function main()
 {
 	global $config;
@@ -1185,6 +1321,17 @@ function main()
 		
 		}
 	}
+	
+	if (!$handled)
+	{
+		if (isset($_GET['api']))
+		{
+			display_api();
+			$handled = true;
+		
+		}
+	}
+	
 	
 	
 	if (!$handled)
