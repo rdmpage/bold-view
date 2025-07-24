@@ -1162,6 +1162,11 @@ function display_api()
 	
 	echo '<p><b>Example:</b> <a href="' . $config['web_server'] . $config['web_root'] . 'api.php?bin=' . urlencode('BOLD:AAC2863') . '" target="_new">api.php?bin=' . urlencode('BOLD:AAC2863') . '</a></p>';
 
+	echo '<h2>Return sequences from a BIN in FASTA format.</h2>';
+	
+	echo '<p><b>Example:</b> <a href="' . $config['web_server'] . $config['web_root'] . 'api.php?bin=' . urlencode('BOLD:AAC2863') . '&format=fasta" target="_new">api.php?bin=' . urlencode('BOLD:AAC2863') . '&amp;format-fasta</a></p>';
+	
+	echo '<p>By default only the first 100 sequences are returned, you can set your own limit using the <code>&amp;limit</code> parameter.</p>';
 	
 	echo '</div>';
 
@@ -1172,7 +1177,7 @@ function display_api()
 function main()
 {
 	global $config;
-
+	
 	$handled = false;
 	
 	// If no query parameters 
@@ -1189,7 +1194,7 @@ function main()
 		default_display($error_msg);
 		exit(0);			
 	}	
-	
+		
 	$limit = 100; // arbitrary limit on some queries
 	
 	// be flexible in input, either processid, barcode, or record
