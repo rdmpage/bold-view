@@ -1288,4 +1288,58 @@ function force_polygon($spatialCoverage)
 	return $spatialCoverage;
 }
 
+
+
+//----------------------------------------------------------------------------------------
+function get_sequences_from_sql($sql)
+{
+	global $db;
+	$result = pg_query($db, $sql);
+	
+	$sequences = array();
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		$label = ">" . join("|", array($row['processid'], $row['bin_uri'], $row['identification']));
+		
+		$sequence = chunk_split($row['nuc'], 60);
+
+		$sequences[$label] = $sequence;
+	}
+	
+	return $sequences;
+}
+
+//----------------------------------------------------------------------------------------
+function get_sequences_for_bin($bin_uri, $limit = 100)
+{
+	$sql = "SELECT processid, bin_uri, identification, nuc FROM boldmeta WHERE nuc IS NOT NULL AND bin_uri='" . $bin_uri . "' LIMIT " . $limit;
+
+	$sequences = get_sequences_from_sql($sql);
+	
+	return $sequences;
+}
+
+//----------------------------------------------------------------------------------------
+function sequences_to_fasta($sequences)
+{
+	$fasta = '';
+	
+	foreach ($sequences as $label => $nuc)
+	{
+		$fasta .= $label . "\n";
+		$fasta .= $nuc . "\n";
+	}
+	
+	return $fasta;
+}
+
+if (0)
+{
+	$sequences = get_sequences_for_bin('BOLD:AEA7008');
+	$fasta = sequences_to_fasta($sequences);
+
+	echo $fasta;
+}
+
 ?>

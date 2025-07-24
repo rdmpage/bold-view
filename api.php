@@ -325,6 +325,12 @@ function display_bin ($id, $limit = 100, $format = '', $callback = '')
 				$html .= '<p><a href="bin/' . $id . '">' . get_text(['bin', 'view']) . ' '. $id . '</a>' . '</p>';	
 				send_html($html, $doc->status);
 				break;
+				
+			case 'fasta':
+				$sequences = get_sequences_for_bin($id, $limit);
+				$fasta = sequences_to_fasta($sequences);
+				send_text($fasta);
+				break;
 			
 			default:
 				send_doc($doc, $callback = '');
@@ -337,7 +343,6 @@ function display_bin ($id, $limit = 100, $format = '', $callback = '')
 		$doc->status = 404;
 		send_doc($doc, $callback = '');
 	}
-	
 
 }
 

@@ -284,6 +284,42 @@ function send_html($html, $status = 200)
 }
 
 //--------------------------------------------------------------------------------------------------
+function send_text($text, $status = 200)
+{
+	switch ($status)
+	{
+		case 303:
+			header('HTTP/1.1 303 See Other');
+			break;
+			
+		case 400:
+			header('HTTP/1.1 400 Bad request');
+			break;
+
+		case 404:
+			header('HTTP/1.1 404 Not Found');
+			break;
+		
+		case 410:
+			header('HTTP/1.1 410 Gone');
+			break;
+		
+		case 500:
+			header('HTTP/1.1 500 Internal Server Error');
+			break;
+				
+		case 200:
+		default:
+			header('HTTP/1.1 200 OK');
+			break;
+	}
+	
+	header("Content-type: text/plain; charset=utf-8");
+	echo $text;	
+	exit();
+}
+
+//--------------------------------------------------------------------------------------------------
 // Parse JSON and return any errors
 function parse_json($json)
 {
