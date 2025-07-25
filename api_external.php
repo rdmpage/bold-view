@@ -156,6 +156,27 @@ function display_accession($accession, $format = '', $callback = '')
 }
 
 //----------------------------------------------------------------------------------------
+function display_material_examined($museumid, $format = '', $callback = '')
+{
+	$url = 'https://material-examined.herokuapp.com/service/api.php?code=' . urlencode($museumid) . '&match';
+	$json = get($url);	
+	
+	$doc = json_decode($json);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 500;
+	}
+
+	send_doc($doc, $callback = '');
+}
+
+//----------------------------------------------------------------------------------------
 function main()
 {
 
@@ -196,9 +217,28 @@ function main()
 		{	
 			$accession = $_GET['accession']; 
 		} 
+		
+		if ($accession != '')
+		{
+			display_accession($accession, $format, $callback);				
+			$handled = true;
+		}
+	}
 
-		display_accession($accession, $format, $callback);				
-		$handled = true;
+	if (!$handled)
+	{		
+		$museumid = '';
+
+		if (isset($_GET['museumid']))
+		{	
+			$museumid = $_GET['museumid']; 
+		} 
+
+		if ($museumid != '')
+		{
+			display_material_examined($museumid , $format, $callback);				
+			$handled = true;
+		}
 	}
 	
 	if (!$handled)

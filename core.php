@@ -750,6 +750,11 @@ function identifier_link($namespace, $value)
 			$html = '<a href="record/' . $value . '">' . $value . '</a>';			
 			break;
 			
+		case 'museumid':
+			//$html = '<a href="record/' . $value . '">' . $value . '</a>';		
+			$html = '<a href="javascript:show_panel_museumid(&quot;' . $value . '&quot;)">' . $value . '</a>';
+			break;
+			
 		case 'datasets':
 			foreach ($value as $v)
 			{

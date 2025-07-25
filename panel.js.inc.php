@@ -70,6 +70,62 @@ function show_panel_accession(accession) {
 }
 
 //----------------------------------------------------------------------------------------
+// Show a summary of an museumid and try and map it to GBIF 
+function show_panel_museumid(museumid) {
+	show_panel(event);
+	
+	// just show musuemid
+	var html = '<h2>' + museumid + '</h2>';
+	document.getElementById("info").innerHTML = html;
+	
+	
+	var url = "api_external.php?museumid=" + museumid;
+	
+	fetch(url).then(
+		function(response){
+			if (response.status != 200) {
+				console.log("Looks like there was a problem. Status Code: " + response.status);
+				document.getElementById("info").innerHTML = "404";
+				return;
+			}
+			
+			response.json().then(function(data) {					
+				//var html = JSON.stringify(data);
+				
+				var html = '<h2>' + data.text + '</h2>';
+				html += '<ul>';
+				for (var i in data.hits) {
+					html += '<li>';
+					
+					if (data.hits[i].key) {
+						html += '<span><a href="https://www.gbif.org/occurrence/' + data.hits[i].key + '" target="_new">' + 'GBIF:' + data.hits[i].key + '</a></span>';
+						
+						if (data.hits[i].occurrenceID) {
+							html += '<ul><li>';
+							
+							if (data.hits[i].occurrenceID.match(/^http/)) {
+								html += '<a href="' + data.hits[i].occurrenceID + '" target="_new">' + data.hits[i].occurrenceID + '</a>';
+							} else {							
+								html + data.hits[i].occurrenceID ;
+							}
+							html + '</li></ul>';						
+						}
+						
+					}
+					
+					html += '</li>';
+				}
+				html += '</ul>';
+				
+				document.getElementById("info").innerHTML = html;
+			});
+			
+	});
+
+	
+}
+
+//----------------------------------------------------------------------------------------
 // Show a panel that displays a preformatted HTML snippet which we fetch from the API
 function show_panel_snippet(api_url) {
 	show_panel();
