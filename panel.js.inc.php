@@ -93,6 +93,7 @@ function show_panel_museumid(museumid) {
 				//var html = JSON.stringify(data);
 				
 				var html = '<h2>' + data.text + '</h2>';
+				html += '<p>Possible match(s) in GBIF.</p>';
 				html += '<ul>';
 				for (var i in data.hits) {
 					html += '<li>';
@@ -106,7 +107,7 @@ function show_panel_museumid(museumid) {
 							if (data.hits[i].occurrenceID.match(/^http/)) {
 								html += '<a href="' + data.hits[i].occurrenceID + '" target="_new">' + data.hits[i].occurrenceID + '</a>';
 							} else {							
-								html + data.hits[i].occurrenceID ;
+								html += data.hits[i].occurrenceID;
 							}
 							html + '</li></ul>';						
 						}
