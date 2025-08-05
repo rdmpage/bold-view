@@ -23,6 +23,13 @@ function search(q) {
 		window.location = "?taxonname=" + m[1];	
 		return;			
 	}	
+	
+	// recordset
+	m = q.match(/^\s*(DS-[A-Z0-9]+)\s*$/);
+	if (m) {
+		window.location = "recordset/" + m[1];	
+		return;			
+	}
 
 	// Assume most other things are taxa
 	m = q.match(/^\s*([A-Z].*)\s*$/);

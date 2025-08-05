@@ -12,6 +12,7 @@ require_once (dirname(__FILE__) . '/five-tuple.php');
 require_once (dirname(__FILE__) . '/nj.php');
 require_once (dirname(__FILE__) . '/swa.php');
 require_once (dirname(__FILE__) . '/tree-label.php');
+require_once (dirname(__FILE__) . '/tSNE.php');
 
 require_once('tree/colour.php');
 require_once('tree/svg.php');
@@ -30,6 +31,15 @@ function sequence_to_embedding ($text)
 	$embedding = sequence_to_vector($text);
 	
 	return $embedding;
+}
+
+//----------------------------------------------------------------------------------------
+function get_distances($obj)
+{
+	// pairwise distances
+	$distances = search_result_to_distances($obj);
+
+	return $distances;
 }
 
 //----------------------------------------------------------------------------------------
@@ -186,6 +196,37 @@ function get_barcode($processid)
 	return $hit;	
 }
 
+
+//----------------------------------------------------------------------------------------
+// compute colours to assign to BINs
+function colour_bins(&$doc)
+{
+	if (isset($doc->hits))
+	{		
+		$doc->bin_colors = array();		
+	
+		foreach ($doc->hits as $hit)
+		{					
+			if (isset($hit->bin_uri))
+			{
+				if (!isset($doc->bin_colors[$hit->bin_uri]))
+				{
+					$bin_index = count($doc->bin_colors);
+					$h = $bin_index * 137.6;
+					$c = 80;
+					$l = 80;
+					
+					$rgb = fromHCL($h, $c, $l);
+
+					$browser = 'rgb(' . round($rgb[0], 0) . ',' . round($rgb[1], 0) . ',' . round($rgb[2], 0) . ')';
+					
+					$doc->bin_colors[$hit->bin_uri] = $browser;
+				}
+			}
+		}	
+	}
+}
+
 //----------------------------------------------------------------------------------------
 // Return sequences similar to a barcode
 function get_barcode_related($processid, $limit) 
@@ -238,6 +279,8 @@ function get_barcode_related($processid, $limit)
 			}
 		}
 	}
+	
+	colour_bins($obj);
 	
 	$endTime = microtime(true);	
 	$obj->took = round($endTime - $startTime, 2);	
@@ -335,7 +378,9 @@ function get_similar_sequences($text, $marker_code = 'COI-5P', $limit = 100)
 	// other things of interest
 	$obj->collections = get_collection($obj->hits, ['insdc_acs']);
 	
-	$obj->aggregations = get_aggregations($obj->hits, ['identification']);	
+	$obj->aggregations = get_aggregations($obj->hits, ['identification']);
+	
+	colour_bins($obj);	
 	
 	$endTime = microtime(true);	
 	$obj->took = round($endTime - $startTime, 2);		
@@ -601,6 +646,8 @@ function get_bin($bin_uri, $limit = 500)
 		unset($obj->images);
 	}
 	
+	// 
+	
 	$endTime = microtime(true);	
 	$obj->took = round($endTime - $startTime, 2);
 
@@ -810,7 +857,7 @@ function identifier_panel_link($namespace, $value)
 //----------------------------------------------------------------------------------------
 // output tree as a table, with SVG for the tree. We may have rows to highlight, these
 // will be in $selection
-function output_tree_table($svg, $table, $selection = [])
+function output_tree_table($svg, $table, $bin_colors, $selection = [])
 {
 	$bin_index = array();
 
@@ -862,6 +909,7 @@ function output_tree_table($svg, $table, $selection = [])
 				{
 					$html .= ' class="bin_uri"';
 					
+					/*
 					if (!isset($bin_index[$row[$column]->value]))
 					{
 						$bin_index[$row[$column]->value] = count($bin_index);
@@ -876,6 +924,9 @@ function output_tree_table($svg, $table, $selection = [])
 					$rgb = fromHCL($h, $c, $l);
 
 					$browser = 'rgb(' . round($rgb[0], 0) . ',' . round($rgb[1], 0) . ',' . round($rgb[2], 0) . ')';
+					*/
+					
+					$browser = $bin_colors[$row[$column]->value];
 					
 					$html .= ' style="background:' . $browser . ';"';
 				}
@@ -1339,12 +1390,186 @@ function sequences_to_fasta($sequences)
 	return $fasta;
 }
 
+//----------------------------------------------------------------------------------------
+// Given a set of search results we get the embeddings for each sequence and generate a 
+// t-Distributed Stochastic Neighbor Embedding (t-SNE) which is returned in a format
+// suitable for VEGA-Lite. That is, an array of values.
+function get_tsne_for_sequences($search_result)
+{
+	if (0)
+	{
+		
+		$values = [];
+		
+		// array of the embedding vectors
+		$samples = array();
+		
+		// labels we will use
+		$bins = array();
+		$barcodes = array();
+		
+		foreach ($search_result->hits as $hit)
+		{
+			$data = json_decode($hit->embedding);
+			$samples[] = $data;
+			
+			if (isset( $hit->bin_uri))
+			{
+				$bins[] = $hit->bin_uri;
+			}
+			else
+			{
+				$bins[] = "None";
+			}
+			
+			$barcodes[] = $hit->processid;	
+		}
+		
+		$tsne = new tSNE(array('dim' => 2));
+		$tsne->initDataRaw($samples);
+	
+		for ($k=0; $k < 200; $k++) 
+		{
+		  // every time you call this, the solution gets better.
+		  $tsne->step();
+		}
+		
+		$Y = $tsne->getSolution();
+		
+		foreach ($Y as $index => $pt)
+		{
+			$obj = new stdclass;
+			$obj->bin = $bins[$index];
+			$obj->processid = $barcodes[$index];
+			$obj->x = $pt[0];
+			$obj->y = $pt[1];
+			
+			$values[]  = $obj;
+		}	
+		
+		return $values;
+		
+		
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 200;
+			
+		$doc->{'$schema'} = "https://vega.github.io/schema/vega-lite/v5.json";
+		$doc->description = "plot";
+		$doc->width  = 500;
+		$doc->height = 500;
+		$doc->data = new stdclass;
+		$doc->data->values = array();
+		
+		$doc->mark = new stdclass;
+		$doc->mark->type = "circle";
+		$doc->mark->size = 200;
+	
+		$doc->encoding = new stdclass;
+		$doc->encoding->x = new stdclass;
+		$doc->encoding->x->field = "x";
+		$doc->encoding->x->type = "quantitative";
+		$doc->encoding->x->axis = new stdclass;
+		$doc->encoding->x->axis->title = "t-SNE 1";
+	
+		$doc->encoding->y = new stdclass;
+		$doc->encoding->y->field = "y";
+		$doc->encoding->y->type = "quantitative";
+		$doc->encoding->y->axis = new stdclass;
+		$doc->encoding->y->axis->title = "t-SNE 2";
+		 
+		$doc->encoding->color = new stdclass;
+		$doc->encoding->color->field = "bin";
+		$doc->encoding->color->type = "nominal";
+		
+		$doc->encoding->color->scale = new stdclass;
+		$doc->encoding->color->scale->domain = array_keys($search_result->bin_colors);
+		$doc->encoding->color->scale->range = array_values($search_result->bin_colors);
+	
+		$doc->encoding->tooltip = [];
+	
+		$tip = new stdclass;
+		$tip->field = "processid";
+		$tip->type = "nominal";
+		$doc->encoding->tooltip[] = $tip;
+	
+		$tip = new stdclass;
+		$tip->field = "processid";
+		$tip->type = "nominal";
+		$doc->encoding->tooltip[] = $tip;
+	
+		$tip = new stdclass;
+		$tip->field = "bin";
+		$tip->type = "nominal";
+		$doc->encoding->tooltip[] = $tip;
+		
+		// array of the embedding vectors
+		$samples = array();
+		
+		// labels we will use
+		$bins = array();
+		$barcodes = array();
+		
+		foreach ($search_result->hits as $hit)
+		{
+			$data = json_decode($hit->embedding);
+			$samples[] = $data;
+			
+			if (isset( $hit->bin_uri))
+			{
+				$bins[] = $hit->bin_uri;
+			}
+			else
+			{
+				$bins[] = "None";
+			}
+			
+			$barcodes[] = $hit->processid;	
+		}
+		
+		$tsne = new tSNE(array('dim' => 2));
+		$tsne->initDataRaw($samples);
+	
+		for ($k=0; $k < 200; $k++) 
+		{
+		  // every time you call this, the solution gets better.
+		  $tsne->step();
+		}
+		
+		$Y = $tsne->getSolution();
+		
+		foreach ($Y as $index => $pt)
+		{
+			$obj = new stdclass;
+			$obj->bin = $bins[$index];
+			$obj->processid = $barcodes[$index];
+			$obj->x = $pt[0];
+			$obj->y = $pt[1];
+			
+			$doc->data->values[]  = $obj;
+		}	
+		
+		return $doc;
+	}
+}
+
 if (0)
 {
 	$sequences = get_sequences_for_bin('BOLD:AEA7008');
 	$fasta = sequences_to_fasta($sequences);
 
 	echo $fasta;
+}
+
+if (0)
+{
+	$s = get_barcode_related('ABLCV316-09', 50);
+	
+	$doc = get_tsne_for_sequences($s);
+	
+	echo json_encode($doc);
 }
 
 ?>

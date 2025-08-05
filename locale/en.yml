@@ -63,6 +63,8 @@ en:
     related: Related barcodes
     related_lede: Neighbour-joining tree of sequences most similar to this barcode based on shared k-mers. Position of barcode is highlighted.
     title: Barcode %s
+    tsne: t-SNE plot
+    tsne_lede: t-distributed stochastic neighbor embedding (t-SNE) plot for k-mer vectors for barcodes.
     view: View
     
   recordset:

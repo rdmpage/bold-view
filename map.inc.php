@@ -13,9 +13,7 @@
 	/* background: #408000; */
 	background: #333399; 
 	border: 1px solid #33CCFF;
-	opacity: 0.85
-	
-	#FF0
+	opacity: 0.85;
 }	  
 </style>
 

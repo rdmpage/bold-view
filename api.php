@@ -270,7 +270,7 @@ function display_barcode_related ($id, $compute_tree = false, $limit=10, $format
 		$doc->newick = get_nj_tree($doc);
 				
 		$table = tree_labels($doc, $doc->newick);		
-	}	
+	}
 	
 	if ($doc)
 	{
@@ -284,7 +284,7 @@ function display_barcode_related ($id, $compute_tree = false, $limit=10, $format
 				{
 					$selection = array($id);
 					$svg = newick_to_svg($doc->newick);
-					$html .= output_tree_table($svg, $table, $selection);
+					$html .= output_tree_table($svg, $table, $doc->bin_colors, $selection);
 				}
 				send_html($html, $doc->status);
 				break;
@@ -304,12 +304,57 @@ function display_barcode_related ($id, $compute_tree = false, $limit=10, $format
 }
 
 //----------------------------------------------------------------------------------------
+function display_barcode_related_tsne ($id, $limit = 50, $callback = '')
+{
+	if (0)
+	{
+		// simple list of values
+		$status = 404;	
+		$doc = get_barcode_related($id, $limit);
+		if ($doc)
+		{
+			$status = 200;
+			$values = get_tsne_for_sequences($doc);
+			
+			send_json(json_encode($values), $status, $callback = '');
+		}
+		else
+		{
+			$doc = new stdclass;
+			$doc->status = 404;
+			send_doc($doc, $callback = '');
+		}
+	}
+	else
+	{
+		// document that creates Vega schema
+		$status = 404;	
+		$doc = get_barcode_related($id, $limit);
+		if ($doc)
+		{
+			$status = 200;
+			$doc = get_tsne_for_sequences($doc);
+			
+			send_doc($doc, $callback = '');
+		}
+		else
+		{
+			$doc = new stdclass;
+			$doc->status = 404;
+			send_doc($doc, $callback = '');
+		}
+		
+	
+	}
+}
+
+//----------------------------------------------------------------------------------------
 // BIN
 function display_bin ($id, $limit = 100, $format = '', $callback = '')
 {
 	$status = 404;
 	
-	$doc = get_bin($id, $limit);
+	$doc = get_bin($id, $limit);	
 	
 	if ($doc)
 	{
@@ -377,7 +422,7 @@ function display_blast ($text, $marker_code = 'COI-5P', $compute_tree = false, $
 			if ($compute_tree)
 			{
 				$svg = newick_to_svg($doc->newick);
-				$html .= output_tree_table($svg, $table, ['query']);
+				$html .= output_tree_table($svg, $table, $doc->bin_colors, ['query']);
 			}
 			send_html($html, $doc->status);
 			break;
@@ -666,8 +711,16 @@ function main()
 		{			
 			if (isset($_GET['related']))
 			{	
-				display_barcode_related($barcode, $compute_tree, $limit, $format,  $callback);				
-				$handled = true;
+				if (isset($_GET['tsne']))
+				{
+					display_barcode_related_tsne($barcode, $limit, $callback);	
+					$handled = true;				
+				}
+				else
+				{
+					display_barcode_related($barcode, $compute_tree, $limit, $format,  $callback);				
+					$handled = true;
+				}
 			}
 			
 			if (isset($_GET['images']))

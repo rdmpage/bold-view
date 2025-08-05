@@ -12,6 +12,8 @@ function html_start($title = '')
 {
 	global $config;
 	
+	get_language();
+	
 	echo '<html>';
 	
 	echo '<head>';
@@ -98,6 +100,7 @@ require_once (dirname(__FILE__) . '/treetable.css.inc.php');
 
 echo '</style>' . "\n";
 
+require_once (dirname(__FILE__) . '/vega.js.inc.php');
 	
 echo '<script>' . "\n";
 
@@ -110,6 +113,14 @@ echo '</script>' . "\n";
 	echo '</head>';
 	
 	echo '<body>';
+	
+	/*
+	echo '<h3>Cookie</h3>';
+	echo '<pre>';
+	print_r($_COOKIE);
+	echo '</pre>';
+	*/
+
 	
 	echo '<nav>
 	<ul>
@@ -352,6 +363,10 @@ function display_barcode($id)
 		echo '<h3>Alignment</h3>
 	 	<div id="alignment" class="alignment"></div>';  
 	 	*/   
+	 	
+	 	echo '<h3>' . get_text(['record', 'tsne']) . '</h3>';
+		echo '<p>' . get_text(['record', 'tsne_lede']) . '</p>';
+	 	echo '<div id="tsne"></div>';
 		
 		
 		echo '</div> <!-- close main -->';
@@ -390,10 +405,64 @@ echo '<script>
 					});
 				});
 		}
+
+		
+		function tsne(id) {
+			var url = "api.php?barcode=" + id + "&related&tsne";
+			
+			fetch(url).then(
+				function(response){
+					if (response.status != 200) {
+						console.log("Looks like there was a problem. Status Code: " + response.status);
+						return;
+					}
+			
+					response.json().then(function(data) {
+					    vegaEmbed("#tsne", data);
+					});
+				});
+		
+		/*
+			var vegaSpec = {
+			  "status": 200,
+			  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+			  "description": "plot",
+			  "width":500,
+			  "height" : 500,
+			  "data": { "url" : "api.php?barcode=" + id + "&related&tsne" },
+			  "mark": { "type": "circle", "size" : 200},
+			  "encoding": {
+				"x": {
+					"field": "x",
+					"type": "quantitative",
+					"axis": {
+					 "title": "t-SNE 1"
+				   }
+				},
+				"y": {
+					"field": "y",
+				   "type": "quantitative",
+					"axis": {
+					 "title": "t-SNE 2"
+				   }
+				   
+				},
+				"color": {"field": "bin", "type": "nominal"},    
+				"tooltip": [
+				  {"field": "processid", "type": "nominal"},
+				  {"field": "bin", "type": "nominal"}
+				]    
+			  }
+			}									
+			vegaEmbed("#tsne", vegaSpec);
+			*/
+		}
+		
 		
 		
 		related("' . urlencode($id) . '");
-		alignment("' . urlencode($id) . '");
+		//alignment("' . urlencode($id) . '");
+		tsne ("' . urlencode($id) . '");
 	</script>';	
 		
 		
@@ -1337,6 +1406,17 @@ function main()
 		}
 	}
 	
+	if (!$handled)
+	{
+		if (isset($_GET['lang']))
+		{
+			$lang = $_GET['lang'];
+			if (in_array($lang, $config['languages']))
+			{
+				set_language($lang);
+			}		
+		}
+	}
 	
 	
 	if (!$handled)

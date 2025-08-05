@@ -201,6 +201,7 @@ function http_post_endpoint($required_parameters = array())
 }
 
 //----------------------------------------------------------------------------------------
+// Send a document as pretty JSON, doc has a status field
 function send_doc($doc, $callback = '')
 {
 	switch ($doc->status)
@@ -247,7 +248,8 @@ function send_doc($doc, $callback = '')
 	exit();
 }
 
-//--------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Send HTML
 function send_html($html, $status = 200)
 {
 	switch ($status)
@@ -283,7 +285,55 @@ function send_html($html, $status = 200)
 	exit();
 }
 
-//--------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Send JSON
+function send_json($json, $status = 200, $callback = '')
+{
+	switch ($status)
+	{
+		case 303:
+			header('HTTP/1.1 303 See Other');
+			break;
+			
+		case 400:
+			header('HTTP/1.1 400 Bad request');
+			break;
+
+		case 404:
+			header('HTTP/1.1 404 Not Found');
+			break;
+		
+		case 410:
+			header('HTTP/1.1 410 Gone');
+			break;
+		
+		case 500:
+			header('HTTP/1.1 500 Internal Server Error');
+			break;
+				
+		case 200:
+		default:
+			header('HTTP/1.1 200 OK');
+			break;
+	}
+	
+	header("Content-type: application/json; charset=utf-8");
+	
+	if ($callback != '')
+	{
+		echo $callback . '(';
+	}
+	echo $json;
+	if ($callback != '')
+	{
+		echo ')';
+	}
+	
+	exit();
+}
+
+//----------------------------------------------------------------------------------------
+// Send text
 function send_text($text, $status = 200)
 {
 	switch ($status)
