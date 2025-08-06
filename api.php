@@ -372,7 +372,7 @@ function display_bin ($id, $limit = 100, $format = '', $callback = '')
 				break;
 				
 			case 'fasta':
-				$sequences = get_sequences_for_bin($id, $limit);
+				$sequences = get_raw_sequences_for_bin($id, $limit);
 				$fasta = sequences_to_fasta($sequences);
 				send_text($fasta);
 				break;
@@ -389,6 +389,29 @@ function display_bin ($id, $limit = 100, $format = '', $callback = '')
 		send_doc($doc, $callback = '');
 	}
 
+}
+
+//----------------------------------------------------------------------------------------
+function display_bin_tsne ($id, $limit = 100, $callback = '')
+{
+	// document that creates Vega schema
+	$status = 404;		
+	
+	$doc = get_bin($id);
+		
+	if ($doc)
+	{
+		$status = 200;
+		$doc = get_tsne_for_sequences($doc);
+		
+		send_doc($doc, $callback = '');
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+		send_doc($doc, $callback = '');
+	}
 }
 
 //----------------------------------------------------------------------------------------
@@ -716,7 +739,8 @@ function main()
 					display_barcode_related_tsne($barcode, $limit, $callback);	
 					$handled = true;				
 				}
-				else
+				
+				if (!$handled)
 				{
 					display_barcode_related($barcode, $compute_tree, $limit, $format,  $callback);				
 					$handled = true;
@@ -759,6 +783,12 @@ function main()
 		
 		if ($bin != '')
 		{
+			if (isset($_GET['tsne']))
+			{
+				display_bin_tsne($bin, $limit, $callback);	
+				$handled = true;				
+			}		
+		
 			if (!$handled)
 			{
 				display_bin($bin, $limit, $format, $callback);

@@ -47,7 +47,14 @@
 	--tree-classification-bg: none;
 
 	--taxonomy-width: 300px;
-
+	
+	/* tSNE chart in VegaLite */
+	--vega-background: var(--bg);
+	--vega-axis-grid: var(--tree-line-color);
+	--vega-axis-label: var(--text);
+	--vega-axis-title: var(--text);
+	--vega-legend-label: var(--text);
+	--vega-legend-title: var(--text);	
 	
 }
 
@@ -110,6 +117,7 @@
 		600 rgb(68,8,201);
 		700 rgb(50,4,172);
 	*/
+	
 
   }
 }

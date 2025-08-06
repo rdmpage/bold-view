@@ -646,7 +646,7 @@ function get_bin($bin_uri, $limit = 500)
 		unset($obj->images);
 	}
 	
-	// 
+	colour_bins($obj);
 	
 	$endTime = microtime(true);	
 	$obj->took = round($endTime - $startTime, 2);
@@ -1344,8 +1344,6 @@ function force_polygon($spatialCoverage)
 	return $spatialCoverage;
 }
 
-
-
 //----------------------------------------------------------------------------------------
 function get_sequences_from_sql($sql)
 {
@@ -1367,7 +1365,7 @@ function get_sequences_from_sql($sql)
 }
 
 //----------------------------------------------------------------------------------------
-function get_sequences_for_bin($bin_uri, $limit = 100)
+function get_raw_sequences_for_bin($bin_uri, $limit = 100)
 {
 	$sql = "SELECT processid, bin_uri, identification, nuc FROM boldmeta WHERE nuc IS NOT NULL AND bin_uri='" . $bin_uri . "' LIMIT " . $limit;
 
@@ -1453,6 +1451,8 @@ function get_tsne_for_sequences($search_result)
 	}
 	else
 	{
+		// Return full VegaLite structure for display		
+		
 		$doc = new stdclass;
 		$doc->status = 200;
 			
@@ -1460,6 +1460,7 @@ function get_tsne_for_sequences($search_result)
 		$doc->description = "plot";
 		$doc->width  = 500;
 		$doc->height = 500;
+		
 		$doc->data = new stdclass;
 		$doc->data->values = array();
 		
@@ -1517,7 +1518,7 @@ function get_tsne_for_sequences($search_result)
 			$data = json_decode($hit->embedding);
 			$samples[] = $data;
 			
-			if (isset( $hit->bin_uri))
+			if (isset($hit->bin_uri))
 			{
 				$bins[] = $hit->bin_uri;
 			}
@@ -1557,7 +1558,7 @@ function get_tsne_for_sequences($search_result)
 
 if (0)
 {
-	$sequences = get_sequences_for_bin('BOLD:AEA7008');
+	$sequences = get_raw_sequences_for_bin('BOLD:AEA7008');
 	$fasta = sequences_to_fasta($sequences);
 
 	echo $fasta;

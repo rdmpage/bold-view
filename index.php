@@ -405,6 +405,26 @@ echo '<script>
 					});
 				});
 		}
+		
+		/*
+  "background": "#1e1e1e",  // Dark background
+  "config": {
+    "axis": {
+      "domainColor": "#cccccc",
+      "tickColor": "#cccccc",
+      "labelColor": "#ffffff",
+      "titleColor": "#ffffff",
+      "gridColor": "#444444"
+    },
+    "legend": {
+      "labelColor": "#ffffff",
+      "titleColor": "#ffffff"
+    },
+    "title": {
+      "color": "#ffffff"
+    }
+  },
+  */		
 
 		
 		function tsne(id) {
@@ -418,6 +438,27 @@ echo '<script>
 					}
 			
 					response.json().then(function(data) {
+					    // based on hint by ChatGPT we can dynanically change colour settings for VegaLite
+					    // by getting computed CSS values
+
+					    var background =  getComputedStyle(document.documentElement).getPropertyValue("--vega-background").trim();
+					    var axisgrid  =   getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-grid").trim();
+					    var axislabel=    getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-label").trim();
+					    var axistitle =   getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-title").trim();
+					    var legendlabel = getComputedStyle(document.documentElement).getPropertyValue("--vega-legend-label").trim();
+					    var legendtitle = getComputedStyle(document.documentElement).getPropertyValue("--vega-legend-title").trim();
+					                                   
+                        data.background = background;
+                        data.config = {};
+                        data.config.axis = {};
+                        data.config.axis.labelColor = axislabel;
+                        data.config.axis.titleColor = axistitle;
+                        data.config.axis.gridColor = axisgrid;
+ 
+                        data.config.legend = {};
+                        data.config.legend.labelColor = legendlabel;
+                        data.config.legend.titleColor = legendtitle;  					
+					
 					    vegaEmbed("#tsne", data);
 					});
 				});
@@ -684,9 +725,12 @@ function display_bin ($id, $limit = 100)
 			echo '</div>';
 		}
 		
+	 	echo '<h3>' . get_text(['record', 'tsne']) . '</h3>';
+		echo '<p>' . get_text(['record', 'tsne_lede']) . '</p>';
+	 	echo '<div id="tsne"></div>';		
 		
-		echo '</div>';
-		echo '</div>';	
+		echo '</div> <!-- main -->';
+		echo '</div> <!-- content -->';	
 		
 		echo '<script type="text/javascript" src="js/viz.js"></script>';
 		
@@ -697,7 +741,47 @@ function display_bin ($id, $limit = 100)
 				var graph = Viz(dot, "svg", "dot");
 				document.getElementById("dot-image").innerHTML = graph;
 			}
-		</script>';
+		
+		function tsne(id) {
+			var url = "api.php?bin=" + id + "&tsne&limit=' . $limit . '";
+			
+			fetch(url).then(
+				function(response){
+					if (response.status != 200) {
+						console.log("Looks like there was a problem. Status Code: " + response.status);
+						return;
+					}
+			
+					response.json().then(function(data) {
+					    // based on hint by ChatGPT we can dynanically change colour settings for VegaLite
+					    // by getting computed CSS values
+
+					    var background =  getComputedStyle(document.documentElement).getPropertyValue("--vega-background").trim();
+					    var axisgrid  =   getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-grid").trim();
+					    var axislabel=    getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-label").trim();
+					    var axistitle =   getComputedStyle(document.documentElement).getPropertyValue("--vega-axis-title").trim();
+					    var legendlabel = getComputedStyle(document.documentElement).getPropertyValue("--vega-legend-label").trim();
+					    var legendtitle = getComputedStyle(document.documentElement).getPropertyValue("--vega-legend-title").trim();
+					                                   
+                        data.background = background;
+                        data.config = {};
+                        data.config.axis = {};
+                        data.config.axis.labelColor = axislabel;
+                        data.config.axis.titleColor = axistitle;
+                        data.config.axis.gridColor = axisgrid;
+ 
+                        data.config.legend = {};
+                        data.config.legend.labelColor = legendlabel;
+                        data.config.legend.titleColor = legendtitle;  					
+					
+					    vegaEmbed("#tsne", data);
+					});
+				});	
+			}
+			
+			tsne ("' . urlencode($id) . '");	
+		</script>
+		';
 
 		
 		html_end();			
