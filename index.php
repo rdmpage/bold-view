@@ -227,7 +227,7 @@ function rank_prefix_name_to_url($string)
 }
 
 //----------------------------------------------------------------------------------------
-function display_barcode($id)
+function display_barcode($id, $limit = 50)
 {
 	$doc = get_barcode($id);
 	
@@ -374,7 +374,7 @@ function display_barcode($id)
 echo '<script>
 		function related(id) {
 									
-			var url = "api.php?barcode=" + id + "&related&tree&limit=50&format=html";
+			var url = "api.php?barcode=" + id + "&related&tree&limit=' . $limit . '&format=html";
 			
 			fetch(url).then(
 				function(response){
@@ -408,7 +408,7 @@ echo '<script>
 
 		
 		function tsne(id) {
-			var url = "api.php?barcode=" + id + "&related&tsne";
+			var url = "api.php?barcode=" + id + "&related&tsne&limit=' . $limit . '";
 			
 			fetch(url).then(
 				function(response){
@@ -1264,7 +1264,7 @@ function main()
 		exit(0);			
 	}	
 		
-	$limit = 100; // arbitrary limit on some queries
+	$limit = 50; // arbitrary limit on some queries
 	
 	// be flexible in input, either processid, barcode, or record
 	if (!$handled)
@@ -1287,7 +1287,7 @@ function main()
 		{			
 			if (!$handled)
 			{
-				display_barcode($barcode);
+				display_barcode($barcode, $limit);
 				$handled = true;
 			}			
 		}

@@ -304,7 +304,7 @@ function display_barcode_related ($id, $compute_tree = false, $limit=10, $format
 }
 
 //----------------------------------------------------------------------------------------
-function display_barcode_related_tsne ($id, $limit = 50, $callback = '')
+function display_barcode_related_tsne ($id, $limit = 100, $callback = '')
 {
 	if (0)
 	{
