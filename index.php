@@ -195,6 +195,8 @@ function default_display($error_msg = '')
 		
 		
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
+
+		echo '<li>View a BIN (<a href="bin/BOLD:AAD8883">BOLD:AAD8883</a>) with a messy taxonomy involving synonyms and non-synomyms.</li>';
 		
 		echo '</ul>';
 	}
@@ -345,7 +347,7 @@ function display_barcode($id, $limit = 50)
 			{
 				echo '<li>';
 				echo '<div>' . $image->title . '</div>';
-				echo '<img onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
+				echo '<img title="' .  $image->title  . '" onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
@@ -716,7 +718,7 @@ function display_bin ($id, $limit = 100)
 			{
 				echo '<li>';
 				// echo '<div>' . $image->title . '</div>';
-				echo '<img onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
+				echo '<img title="' .  $image->title  . '" . onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
@@ -947,10 +949,12 @@ WHERE
 					    	dbpedia: null, // slug for DBPedia
 					    	wikipedia: {} // details of wiki pages
 					    };
+					    					    
+					    // alert(JSON.stringify(data.results.bindings[0], null, 2));
 					    
 					    for (var i in data.results.bindings[0]) {
 					    
-					       if (data.results.bindings["wikipedia_en"]) {
+					       if (data.results.bindings[0]["wikipedia_en"]) {
 					          wiki.wikipedia["en"] = {
 					             page: data.results.bindings[0]["wikipedia_en"].value,
 					             wiki: "Wikipedia"
@@ -977,6 +981,8 @@ WHERE
 						    language = "en";
 						}
 						
+						// alert(JSON.stringify(wiki, null, 2));
+						
 						dbpedia_summary(wiki,language, "taxon_info");
 					}
 					
@@ -999,6 +1005,8 @@ WHERE
 				}
 				
 				response.json().then(function(data) {
+				
+					// alert(JSON.stringify(wiki));
 					
 					var html = "";
 					for (var i in data) {
