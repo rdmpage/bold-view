@@ -168,35 +168,71 @@ function default_display($error_msg = '')
 	{
 		echo '<h1>BOLD View</h1>';
 		
-		echo '<p>BOLD View is an tool to explore DNA barcode data.</p>';
+		echo '<p>BOLD View is an tool to explore DNA barcode data. This version is based on data from <a href="https://bench.boldsystems.org/index.php/datapackage?id=BOLD_Public.06-Sep-2024">BOLD_Public.06-Sep-2024</a>.</p>';
+		
+		
+		echo '<section style="display: flex;justify-content: center;align-items: stretch;margin: 2rem auto;gap: 1.5em;">';
+  		echo '<div style="flex: 1 1 300px;border-radius: 0.5em;border:1px solid var(--input-border);text-align: center;padding:1em;">';
+  		echo '<h3>Geography</h3>';
+  		echo '<img height="128" src="images/map.png">';
+  		echo '</div>';
+
+
+  		echo '<div style="flex: 1 1 300px;border-radius: 0.5em;border:1px solid var(--input-border);text-align: center;padding:1em;">';
+  		echo '<h3>Phylogeny</h3>';
+  		echo '<img height="128" src="images/tree.png">';
+  		echo '</div>';
+  		
+  		echo '<div style="flex: 1 1 300px;border-radius: 0.5em;border:1px solid var(--input-border);text-align: center;padding:1em;">';
+  		echo '<h3>Taxonomy</h3>';
+  		echo '<img height="128" src="images/classification.png">';
+  		echo '</div>';
+  		
+
+  		echo '</section>';
+		
 		
 		echo '<h2>Starting points</h2>';
 		
 		echo '<ul>';
+		
+		echo '<li>Main features</li>';
+		echo '<ul>';
 		echo '<li>A browseable <a href="map">map</a> of barcodes.</li>';
-		echo '<li>Find barcodes that <a href="blast"> match</a> a sequence using vector search.</li>';
-		echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
+		echo '<li>Find barcodes that <a href="blast"> match</a> a sequence using vector search.</li>';		
+		echo '</ul>';
+		
+		echo '<li>Barcodes</li>';
+		echo '<ul>';
 		echo '<li>View a barcode for a stingless bee <i>Hypotrigona</i> from South Africa: <a href="record/KMPPA063-18">KMPPA063-18</a>.</li>';
 		echo '<li>View a barcode for a gecko <i>Tropiocolotes tripolitanus</i> with multiple BINs <a href="record/REWSS381-22">REWSS381-22</a></li>';
-		echo '<li>View a BIN which includes holotype (<a href="record/PNGTY1822-15">PNGTY1822-15</a>): <a href="bin/BOLD:ACA8529">BOLD:ACA8529</a></li>';
 		echo '<li>View a barcode for a Fijian bee <i>Homalictus nadarivatu</i> with interesting tree <a href="record/GBMNC45937-20">GBMNC45937-20</a></li>';
-		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
-		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
-		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
-		
-		echo '<li>View recordset <a href="recordset/DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
-		echo '<li>View recordset <a href="recordset/DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';
-		
-		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
-
-		echo '<li>View recordset <a href="recordset/DS-ALLSAT">DS-ALLSAT</a> containing lots of images of saturnids (no DOI).</li>';
-		
-		
-		
-		
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
-
+		echo '</ul>';
+		
+		echo '<li>BINs</li>';
+		echo '<ul>';
+		echo '<li>View a BIN for ant-mimicing spiders in Borneo: <a href="bin/BOLD:ACO6074">BOLD:ACO6074</a>.</li>';
+		echo '<li>View a BIN which includes holotype (<a href="record/PNGTY1822-15">PNGTY1822-15</a>): <a href="bin/BOLD:ACA8529">BOLD:ACA8529</a></li>';
+		echo '<li>View a BIN with two taxonomic names, one for each sex <a href="bin/BOLD:ACG2612">BOLD:ACG2612</a> (see <a href="https://doi.org/10.54102/ajt.df83w" target="_new">doi:10.54102/ajt.df83w</a>)</li>';
 		echo '<li>View a BIN (<a href="bin/BOLD:AAD8883">BOLD:AAD8883</a>) with a messy taxonomy involving synonyms and non-synomyms.</li>';
+		echo '</ul>';
+		
+		
+		echo '<li>Taxonomy</li>';
+		echo '<ul>';
+		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
+		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
+		echo '</ul>';
+		
+		echo '<li>Record sets</li>';
+		echo '<ul>';
+		echo '<li>View recordset <a href="recordset/DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
+		echo '<li>View recordset <a href="recordset/DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';		
+		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
+		echo '<li>View recordset <a href="recordset/DS-ALLSAT">DS-ALLSAT</a> containing lots of images of saturnids (no DOI).</li>';
+		echo '</ul>';
+
 		
 		echo '</ul>';
 	}
