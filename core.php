@@ -27,6 +27,7 @@ function sequence_to_embedding ($text)
 	// remove newlines (in case this is a FASTA-style chunked sequence)
 	$text = preg_replace('/[0-9\s\.]/', '', $text);
 	$text = preg_replace('/\R/u', '', $text);
+	$text = preg_replace('/\/+/', '', $text);
 	
 	$embedding = sequence_to_vector($text);
 	
