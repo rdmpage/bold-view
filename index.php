@@ -210,7 +210,10 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode (<a href="record/ANGBF37031-19">ANGBF37031-19</a>) that is part of a BIN labelled with synonyms (<i>Apogon smithi</i> and <i>Jaydia smithi</i>), see "Exploring artificial neural networks for the curation of DNA barcode reference libraries..." <a href="https://doi.org/10.22541/au.172374899.92498971/v1">doi:10.22541/au.172374899.92498971/v1</a>.</li>';
 		
 		echo '<li>View a barcode (<a href="record/GBMNC29092-20">GBMNC29092-20</a>) that is part of a clade of unnamed species of "Ariophantidae" in BOLD but we have names (see <a href="https://doi.org/10.1163/18759866-BJA10013">doi:10.1163/18759866-BJA10013</a>). We also have records in <a href="https://www.gbif.org/dataset/16764f37-df6d-4ca9-abba-07a17e60b23e">GBIF</a> 
-		from this paper via <a href="https://tb.plazi.org/GgServer/summary/BE558D57A47D4B43FF9A80386371BE43">Plazi</a>, but these contain errors and do not include accession numbers.';
+		from this paper via <a href="https://tb.plazi.org/GgServer/summary/BE558D57A47D4B43FF9A80386371BE43">Plazi</a>, but these contain errors and do not include accession numbers.</li>';
+		
+		echo '<li>View a barcode (<a href="record/SICOD1591-19">SICOD1591-19</a>) that has a specimen code USNMENT1566178 that is missing one digit (a leading "0") from the code for the same specimen in <a href="https://www.gbif.org/occurrence/3758719393">GBIF</a>. GBIF does not know that this specimen has been sequenced.</li>';
+		
 		echo '</ul>';
 		
 		echo '<li>BINs</li>';
