@@ -12,6 +12,9 @@ RewriteBase /
 
 RewriteRule record/(.*)$ ?record=$1 [NC,L]
 
+# accession
+RewriteRule insdc/(.*)$ ?insdc=$1 [NC,L]
+
 # bin
 
 RewriteRule bin/(.*)$ ?bin_uri=$1 [NC,L]
@@ -37,5 +40,9 @@ RewriteRule recordset/(.*)$ ?recordset=$1 [NC,L]
 # api
 
 RewriteRule api$ ?api [NC,L]
+
+# language
+
+RewriteRule lang/(.*)$ ?lang=$1 [NC,L]
 
 

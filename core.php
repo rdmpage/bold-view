@@ -197,6 +197,29 @@ function get_barcode($processid)
 	return $hit;	
 }
 
+//----------------------------------------------------------------------------------------
+// Return barcode from accession (null if not found)
+function get_barcode_from_accession($accession) 
+{
+	global $db;
+	
+	$barcode = null;
+
+	$sql = "SELECT processid FROM boldmeta
+		WHERE insdc_acs='" . $accession . "'";
+		
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result))
+	{
+		if (isset($row['processid']))
+		{
+			$barcode = $row['processid'];
+		}
+	}
+		
+	return $barcode;	
+}
 
 //----------------------------------------------------------------------------------------
 // compute colours to assign to BINs

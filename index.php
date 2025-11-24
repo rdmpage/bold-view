@@ -271,6 +271,24 @@ function rank_prefix_name_to_url($string)
 }
 
 //----------------------------------------------------------------------------------------
+// Find barcode with Genbank accession number and redirect to barcode page
+function display_accession($accession)
+{
+	$barcode = get_barcode_from_accession($accession);
+	
+	if ($barcode)
+	{
+		$url = $config['web_server'] . $config['web_root'] . 'record/' . $barcode;
+		header('Location: '.$url);
+    	exit();
+	}
+	else
+	{
+		default_display("Barcode with accession $accession not found");
+	}
+}
+
+//----------------------------------------------------------------------------------------
 function display_barcode($id, $limit = 50)
 {
 	$doc = get_barcode($id);
@@ -951,6 +969,7 @@ function display_taxonomy ($taxid = 713, $k = 40)
 		});
 		
 		
+		/*
 		// wiki-based information
 		
 		// BOLD taxonomy to Wikipedia via Wikidata
@@ -992,7 +1011,7 @@ WHERE
 					    	wikipedia: {} // details of wiki pages
 					    };
 					    					    
-					    // alert(JSON.stringify(data.results.bindings[0], null, 2));
+					    //alert(JSON.stringify(data.results.bindings[0], null, 2));
 					    
 					    for (var i in data.results.bindings[0]) {
 					    
@@ -1023,7 +1042,9 @@ WHERE
 						    language = "en";
 						}
 						
-						// alert(JSON.stringify(wiki, null, 2));
+						//alert(JSON.stringify(wiki, null, 2));
+						
+						//alert(language);
 						
 						dbpedia_summary(wiki,language, "taxon_info");
 					}
@@ -1031,10 +1052,13 @@ WHERE
 				});
 				
 		});
+		*/
 		
 	}
 	
 	function dbpedia_summary(wiki, language, element_id) {
+	
+		//alert(JSON.stringify(wiki));
 	
 		var url = "dbpedia_proxy.php?query=" + encodeURIComponent("DESCRIBE <http://dbpedia.org/resource/" + wiki.dbpedia + ">");
 		
@@ -1048,7 +1072,7 @@ WHERE
 				
 				response.json().then(function(data) {
 				
-					// alert(JSON.stringify(wiki));
+					//alert(JSON.stringify(data));
 					
 					var html = "";
 					for (var i in data) {
@@ -1064,6 +1088,7 @@ WHERE
 							}
 						}
 					}
+					//alert(html);
 					if (html != "") {
 					 document.getElementById(element_id).innerHTML = html;
 					}
@@ -1426,6 +1451,25 @@ function main()
 			}			
 		}
 
+	}	
+	
+	// handle GenBank accession (we redirect to barcode)
+	if (!$handled)
+	{		
+		$accession = '';
+		if (isset($_GET['insdc']))
+		{	
+			$accession = $_GET['insdc']; 
+		} 
+		
+		if ($accession != '')	
+		{			
+			if (!$handled)
+			{
+				display_accession($accession, $limit);
+				$handled = true;
+			}			
+		}
 	}	
 	
 	// be flexible in name of bin parameter

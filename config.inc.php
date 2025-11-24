@@ -23,6 +23,8 @@ else
 	$config['web_root']		= '/';
 }
 
+$config['languages'] = ['en', 'zh'];
+
 // Default language is English
 $config['lang'] = 'en';
 //$config['lang'] = 'zh';

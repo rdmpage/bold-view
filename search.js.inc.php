@@ -10,6 +10,13 @@ function search(q) {
 		return;		
 	}
 	
+	// accession, with or without "insdc:" prefix
+	m = q.match(/^\s*(insdc:)?([A-Z]{1,2}\d+)\s*$/);
+	if (m) {
+		window.location = "insdc/" + m[2];	
+		return;		
+	}	
+	
 	// bin
 	m = q.match(/^\s*(BOLD:[A-Z]+\d+)\s*$/);
 	if (m) {
