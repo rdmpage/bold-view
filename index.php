@@ -238,6 +238,12 @@ function default_display($error_msg = '')
 		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
 		echo '<li>View recordset <a href="recordset/DS-ALLSAT">DS-ALLSAT</a> containing lots of images of saturnids (no DOI).</li>';
 		echo '</ul>';
+		
+		echo '<li>Specimen links</li>';
+		echo '<ul>';
+		echo '<li>View a barcode (<a href="record/CALI045-19">CALI045-19</a>) where BOLD has a specimen image but the museum specimen <a href="https://data.nhm.ac.uk/object/06233359-cc67-4c09-b56e-2a1c4d98d0e9/1760005475174">NHMUK013377209</a>(the NHM) does not .</li>';
+		echo '</ul>';
+		
 
 		
 		echo '</ul>';

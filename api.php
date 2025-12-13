@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 require_once (dirname(__FILE__) . '/api_utilities.php');
 require_once (dirname(__FILE__) . '/core.php');
 require_once (dirname(__FILE__) . '/language.php');
+require_once (dirname(__FILE__) . '/geojson_to_svg.php');
 
 //----------------------------------------------------------------------------------------
 function default_display()
@@ -126,6 +127,16 @@ function display_barcode ($id, $format = '', $callback = '')
 				//$html .= '<p>Summarise this barcode here</p>';	
 				//$html .= '<p><a href="?record=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
 				$html .= '<p><a href="record/' . $id . '">' . get_text(['record', 'view']) . ' ' . $id . '</a>' . '</p>';	
+				
+				if (isset($doc->feature))
+				{
+					$geo = new stdclass;
+					$geo->features = array($doc->feature);
+				
+					$xml = geo_to_svg($geo);
+					
+					$html .= $xml;
+				}
 				
 				if (isset($doc->images))
 				{
@@ -368,6 +379,14 @@ function display_bin ($id, $limit = 100, $format = '', $callback = '')
 				//$html .= '<p>Summarise this bin here</p>';			
 				// $html .= '<p><a href="?bin_uri=' . urlencode($id) . '">View ' . $id . '</a>' . '</p>';	
 				$html .= '<p><a href="bin/' . $id . '">' . get_text(['bin', 'view']) . ' '. $id . '</a>' . '</p>';	
+				
+				if (isset($doc->geo))
+				{
+					$xml = geo_to_svg($doc->geo);
+					
+					$html .= $xml;
+				}
+								
 				send_html($html, $doc->status);
 				break;
 				
