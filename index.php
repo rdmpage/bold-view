@@ -420,7 +420,7 @@ function display_barcode($id, $limit = 50)
 			{
 				echo '<li>';
 				echo '<div>' . $image->title . '</div>';
-				echo '<img title="' .  $image->title  . '" onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
+				echo '<img title="' .  $image->title  . '" onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . str_replace('www.', 'v4.', $image->url)  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
@@ -791,7 +791,7 @@ function display_bin ($id, $limit = 100)
 			{
 				echo '<li>';
 				// echo '<div>' . $image->title . '</div>';
-				echo '<img title="' .  $image->title  . '" . onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . $image->url  . '">';
+				echo '<img title="' .  $image->title  . '" . onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . str_replace('www', 'v4', $image->url)  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->
@@ -1284,7 +1284,7 @@ function display_recordset($id)
 						
 						for (var i in data.hits) {
 							html += "<li>";
-							html += "<img onclick=\"show_panel_snippet(&quot;api.php?image=" + encodeURI(data.hits[i].url) +"&format=html&quot;)\" src=\"" + data.hits[i].url + "\"></li>";
+							html += "<img onclick=\"show_panel_snippet(&quot;api.php?image=" + encodeURI(data.hits[i].url) +"&format=html&quot;)\" src=\"" + data.hits[i].url.replace("www", "v4") + "\"></li>";
 						}						
 						
 						html += "<li id=\"last\"></li>";

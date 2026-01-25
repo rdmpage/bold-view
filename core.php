@@ -79,7 +79,7 @@ function pq_record_to_obj($row)
 				
 				// image
 				case 'url':
-					$hit->{$k} = str_replace('/www.', '/v4.', $v);
+					$hit->{$k} = $v;
 					break;
 					
 					

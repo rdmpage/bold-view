@@ -28,7 +28,7 @@ function display_image ($id, $format = '', $callback = '')
 		{
 			case 'html':
 				// to do: we want to return a small snippet, not a full page
-				$html = '<img src="' . $doc->url . '" width="100%">';
+				$html = '<img src="' . str_replace('www', 'v4', $doc->url) . '" width="100%">';
 
 				$html .= '<dl>';
 				
@@ -140,7 +140,7 @@ function display_barcode ($id, $format = '', $callback = '')
 				
 				if (isset($doc->images))
 				{
-					$html .= '<img src="' . $doc->images[0]->url . '" width="100%">';
+					$html .= '<img src="' . str_replace('www', 'v4', $doc->images[0]->url) . '" width="100%">';
 				}				
 						
 				send_html($html, $doc->status);
