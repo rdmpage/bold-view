@@ -213,6 +213,11 @@ function default_display($error_msg = '')
 		from this paper via <a href="https://tb.plazi.org/GgServer/summary/BE558D57A47D4B43FF9A80386371BE43">Plazi</a>, but these contain errors and do not include accession numbers.</li>';
 		
 		echo '<li>View a barcode (<a href="record/SICOD1591-19">SICOD1591-19</a>) that has a specimen code USNMENT1566178 that is missing one digit (a leading "0") from the code for the same specimen in <a href="https://www.gbif.org/occurrence/3758719393">GBIF</a>. GBIF does not know that this specimen has been sequenced.</li>';
+
+		echo '<li>View a barcode (<a href="record/GBCOC12389-23">GBCOC12389-23</a>) for the snake genus <i>Sinomicrurus</i> that is identified only as "Chordata"</li>';
+		
+		
+		
 		
 		echo '</ul>';
 		
@@ -229,6 +234,8 @@ function default_display($error_msg = '')
 		echo '<ul>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Homalictus"><i>Homalictus</i></a> which Wikipedia says is not a genus.</li>';
 		echo '<li>View taxonomy for <a href="?taxonname=g__Mabuya"><i>Mabuya</i></a> which Wikipedia says is a "wastebasket taxon".</li>';
+		echo '<li>View taxonomy for <a href="?taxonname=o__Anaspidacea">Anaspidacea</a> which are mostly found in Tasmania, but BOLD lacks this information.</li>';
+
 		echo '</ul>';
 		
 		echo '<li>Record sets</li>';
@@ -318,7 +325,7 @@ function display_barcode($id, $limit = 50)
 		echo '<h1>' . $title . '</h1>';
 		echo '<p>' . get_text(['record', 'lede']) . '</p>';
 		
-		$keys = array('identification', 'insdc_acs', 'bin_uri', 'museumid', 'datasets');
+		$keys = array('identification', 'insdc_acs', 'bin_uri', 'museumid', 'datasets', 'voucher_type', 'locality', 'coord', 'coord_source', 'typestatus');
 		
 		echo '<h3>' . get_text(['record', 'details']) . '</h3>';
 		echo '<p>' . get_text(['record', 'details_lede']) . '</p>';
@@ -328,7 +335,7 @@ function display_barcode($id, $limit = 50)
 		{
 			if (isset($doc->{$key}))
 			{
-				echo '<dt>' .get_text(['record', $key]) . '</dt>';
+				echo '<dt>' .get_text(['record', $key]) . '</dt>';				
 				echo '<dd>' . identifier_link($key, $doc->{$key}) . '</dd>';
 			}
 		}

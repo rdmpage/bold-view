@@ -79,6 +79,10 @@ function pq_record_to_obj($row)
 				
 				// image
 				case 'url':
+					$hit->{$k} = str_replace('/www.', '/v4.', $v);
+					break;
+					
+					
 				case 'title':
 				case 'view':
 				case 'mimetype':
@@ -151,6 +155,33 @@ function pq_record_to_obj($row)
 					}
 					break;
 					
+				// locality
+				case 'country/ocean':
+				case 'country_iso':
+				case 'province/state':
+				case 'region':
+				case 'sector':
+				case 'site':
+					$hit->locality[] = $v;
+					break;
+				
+				// coordinates
+				case 'coord':
+				//case 'coord_accuracy':
+				case 'coord_source':
+					$hit->{$k} = $v;
+					break;					
+				
+				
+				// specimen notes
+				case 'voucher_type':
+					$hit->{$k} = $v;
+					break;	
+					
+				case 'typestatus':
+					$hit->{$k} = $v;
+					break;
+					
 				default:
 					break;
 			}
@@ -175,8 +206,7 @@ function get_barcode($processid)
 		FROM boldvector 
 		INNER JOIN boldmeta USING(processid)
 		WHERE processid='" . $processid . "'";
-	
-	
+		
 	$result = pg_query($db, $sql);
 	
 	while ($row = pg_fetch_assoc($result))
@@ -192,6 +222,7 @@ function get_barcode($processid)
 		{
 			unset($hit->images);
 		}
+		
 	}
 	
 	return $hit;	
@@ -220,6 +251,30 @@ function get_barcode_from_accession($accession)
 		
 	return $barcode;	
 }
+
+//----------------------------------------------------------------------------------------
+// Annotations for a thing
+function get_annotations($subject) 
+{
+	global $db;
+	
+	$annotations = array();
+
+	$sql = "SELECT * FROM boldannotation
+	WHERE subject='" . $subject . "'";
+	$result = pg_query($db, $sql);
+	
+	while ($row = pg_fetch_assoc($result)) 
+	{
+		if (!isset($annotations[$row['predicate']]))
+		{
+			$annotations[$row['predicate']] = [];
+		}
+		$annotations[$row['predicate']][] = $row['object'];
+	}
+
+	return $annotations;
+}	
 
 //----------------------------------------------------------------------------------------
 // compute colours to assign to BINs
@@ -283,6 +338,7 @@ function get_barcode_related($processid, $limit)
 	$sql = "SELECT *, ST_AsText(coord) AS point, embedding <-> '" 
 			. pg_escape_string($db, $from->embedding) 
 			. "' AS distance FROM boldvector WHERE marker_code='" . $from->marker_code . "' ORDER BY distance LIMIT " . $limit;
+
 	$result = pg_query($db, $sql);
 	
 	while ($row = pg_fetch_assoc($result))
@@ -737,7 +793,18 @@ function newick_to_svg($newick)
 function tree_labels($obj, $newick)
 {
 	$table = new stdclass;
-	$table->columns = array('processid', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	
+	// columns (database fields)
+	$table->columns = array('processid', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	
+	// column names for display (by default same as database field)
+	$table->column_aliases = array();
+	foreach ($table->columns as $column)
+	{
+		$table->column_aliases[$column] = $column;
+	}
+	$table->column_aliases['typestatus'] = 'type';
+	
 	$table->rows = array();
 
 	$t = parse_newick($newick);
@@ -832,6 +899,10 @@ function identifier_link($namespace, $value)
 				$html .= '<a href="recordset/' . $v . '">' . $v . '</a>' . ' ';	
 			}
 			break;
+			
+		case 'locality':
+			$html = join(", ", $value);	
+			break;
 						
 		default:
 			$html = $value;
@@ -892,7 +963,7 @@ function output_tree_table($svg, $table, $bin_colors, $selection = [])
 	$html .= '<tr>';
 	$html .= '<th>tree</th>';
 
-	foreach ($table->columns as $column)
+	foreach ($table->column_aliases as $column)
 	{
 		$html .= '<th>' . $column . '</th>';
 	}
@@ -965,7 +1036,14 @@ function output_tree_table($svg, $table, $bin_colors, $selection = [])
 			$html .= '>';
 			if (isset($row[$column]))
 			{
-				$html .=  identifier_panel_link($column, $row[$column]->value); 
+				if ($column == 'typestatus')
+				{
+					$html .= '●';
+				}
+				else
+				{
+					$html .=  identifier_panel_link($column, $row[$column]->value); 
+				}
 			}
 			$html .=  '</td>';
 		}
@@ -1302,6 +1380,25 @@ function get_recordset($id)
 		$obj->num_barcodes = (Integer)$row['c'];
 	}
 	
+	// schema.org term
+	$obj->spatialCoverage = get_recordset_spatial_extent($id);
+	
+	if ($obj)
+	{
+		$endTime = microtime(true);	
+		$obj->took = round($endTime - $startTime, 2);	
+	}
+	
+	return $obj;	
+}
+
+//----------------------------------------------------------------------------------------
+function get_recordset_spatial_extent($id)
+{
+	global $db;
+	
+	$extent = null;
+
 	// geographic extent
 	$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_ConcaveHull(ST_Collect(boldvector.coord), 1))) AS envelope
 	FROM boldvector 
@@ -1312,24 +1409,10 @@ function get_recordset($id)
 	
 	while ($row = pg_fetch_assoc($result))
 	{
-		if (!$obj)
-		{
-			$obj = new stdclass;
-			$obj->took = 0;						
-			$obj->id = $id;
-		}
-		
-		// schema.org term
-		$obj->spatialCoverage = force_polygon($row['envelope']);
+		$extent = force_polygon($row['envelope']);
 	}
 	
-	if ($obj)
-	{
-		$endTime = microtime(true);	
-		$obj->took = round($endTime - $startTime, 2);	
-	}
-	
-	return $obj;	
+	return $extent;
 }
 
 //----------------------------------------------------------------------------------------

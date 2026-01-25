@@ -632,6 +632,27 @@ function display_recordset($id, $callback = '')
 }
 
 //----------------------------------------------------------------------------------------
+// Get spatial extent of a recordset
+function display_recordset_spatial_extent($id, $callback = '')
+{
+	$status = 404;
+	
+	$doc = get_recordset_spatial_extent($id);
+	
+	if ($doc)
+	{
+		$doc->status = 200;
+	}
+	else
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+	}
+	
+	send_doc($doc, $callback = '');
+}
+
+//----------------------------------------------------------------------------------------
 // Get paged list of barcodes
 function display_paged_barcodes ($page_start = 0, $page_size = 100, $filter = '', $callback = '')
 {
@@ -900,6 +921,16 @@ function main()
 			$offset = $page * $page_size;
 		
 			$filter = 'recordset:' . $recordset;
+			
+			// GeoJSON polygon of spatial extent
+			if (!$handled)
+			{
+				if ($format == 'geojson')
+				{
+					display_recordset_spatial_extent($recordset);				
+					$handled = true;
+				}
+			}
 			
 			if (!$handled)
 			{

@@ -136,7 +136,6 @@ function create_large_map(id, controls = true, filter = '') {
 	map = new L.Map(id);
 
 	// create the tile layer with correct attribution
-	// create the tile layer with correct attribution
 	var layerUrl = '';
 	var layerAttrib = '';
 	// https://stackoverflow.com/a/57795495

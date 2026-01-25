@@ -45,6 +45,9 @@ en:
     
   record:
     bin_uri: BIN ID
+    coord: Geographical coordinates
+    coord_accuracy: Accuracy of coordinates
+    coord_source: Source of coordinates
     datasets: Datasets
     details: Details
     details_lede: Data for this barcode.
@@ -55,6 +58,7 @@ en:
     lede: A barcode is a DNA sequence obtained from a sample, typically an individual organism.
     lineage: Taxonomy
     lineage_lede: Taxonomic classification of barcode.    
+    locality: Sample locality
     map: Map
     map_lede: Where barcode was sampled.
     museumid: Catalogue number
@@ -65,7 +69,10 @@ en:
     title: Barcode %s
     tsne: t-SNE plot
     tsne_lede: t-distributed stochastic neighbor embedding (t-SNE) plot for k-mer vectors for barcodes.
+    typestatus: Type status of specimen    
     view: View
+    voucher_type: Voucher type
+    
     
   recordset:
     lede: A dataset comprises a set of barcodes.

@@ -43,8 +43,8 @@ function swa($label1, $label2, $seq1, $seq2, $debug = false)
 	// Weights
 	$match 		=  3;
 	$mismatch 	= -1;
-	$deletion 	= -3;
-	$insertion 	= -3;
+	$deletion 	= -6;
+	$insertion 	= -6;
 	
 	// Tokenise input strings, and convert to lower case
 	$X = str_split($seq1);
@@ -268,9 +268,14 @@ function show_alignment($alignment)
 {
 	$text = '';
 
-	$label_length = 16;
+	$label_length = 20;
 	$chunk_length = 60;
-	$pos_length = 6;
+	$pos_length    = 5;
+	$pos_space     = 1;
+	
+	// ensure labels aren't too long
+	$alignment->labels[0] = substr($alignment->labels[0], 0, $label_length);
+	$alignment->labels[1] = substr($alignment->labels[1], 0, $label_length);
 
 	$num_rows = 3; // one for each sequence, one for the vertical bars
 	$num_chunks = ceil(strlen($alignment->text[0]) / $chunk_length);
@@ -294,10 +299,12 @@ function show_alignment($alignment)
 					$text .= str_pad($alignment->labels[0], $label_length, ' ', STR_PAD_RIGHT);
 					
 					$pos = $seq1_pos_start + ($i * $chunk_length) + 1;
-					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_RIGHT);
+					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_LEFT);
+					$text .= str_pad(' ', $pos_space, ' ', STR_PAD_LEFT);
 					
 					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
 					
+					// if last row add sequence position at end
 					if ($i == $num_chunks - 1)
 					{
 						$pos = $seq1_pos_end + 1;
@@ -309,7 +316,8 @@ function show_alignment($alignment)
 				
 				case 1:
 					$text .= str_pad(" ", $label_length, ' ', STR_PAD_RIGHT);
-					$text .= str_pad(" ", $pos_length, ' ', STR_PAD_RIGHT);
+					$text .= str_pad(" ", $pos_length, ' ', STR_PAD_LEFT);
+					$text .= str_pad(' ', $pos_space, ' ', STR_PAD_LEFT);
 					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
 					$text .= "\n";
 					break;
@@ -318,10 +326,12 @@ function show_alignment($alignment)
 					$text .= str_pad($alignment->labels[1], $label_length, ' ', STR_PAD_RIGHT);
 
 					$pos = $seq2_pos_start + ($i * $chunk_length) + 1;
-					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_RIGHT);
+					$text .= str_pad($pos, $pos_length, ' ', STR_PAD_LEFT);
+					$text .= str_pad(' ', $pos_space, ' ', STR_PAD_LEFT);
 
 					$text .= substr($alignment->text[$j], ($i * $chunk_length), $chunk_length);
 
+					// if last row add sequence position at end
 					if ($i == $num_chunks - 1)
 					{
 						$pos = $seq2_pos_end + 1;
