@@ -181,6 +181,11 @@ function pq_record_to_obj($row)
 				case 'typestatus':
 					$hit->{$k} = $v;
 					break;
+
+				// alignment w.r.t. reference sequence
+				case 'alignment':
+					$hit->{$k} = json_decode($v);
+					break;
 					
 				default:
 					break;
@@ -795,7 +800,7 @@ function tree_labels($obj, $newick)
 	$table = new stdclass;
 	
 	// columns (database fields)
-	$table->columns = array('processid', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	$table->columns = array('processid', 'alignment', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
 	
 	// column names for display (by default same as database field)
 	$table->column_aliases = array();
@@ -804,6 +809,7 @@ function tree_labels($obj, $newick)
 		$table->column_aliases[$column] = $column;
 	}
 	$table->column_aliases['typestatus'] = 'type';
+	$table->column_aliases['alignment'] = 'align';
 	
 	$table->rows = array();
 
@@ -1003,30 +1009,11 @@ function output_tree_table($svg, $table, $bin_colors, $selection = [])
 				if ($column == 'bin_uri') 
 				{
 					$html .= ' class="bin_uri"';
-					
-					/*
-					if (!isset($bin_index[$row[$column]->value]))
-					{
-						$bin_index[$row[$column]->value] = count($bin_index);
-					}
-					
-					// golden angle, see https://medium.com/samsung-internet-dev/human-friendly-colours-using-hsl-4944bcdb6e27
-					
-					$h = $bin_index[$row[$column]->value] * 137.6;
-					$c = 80;
-					$l = 80;
-					
-					$rgb = fromHCL($h, $c, $l);
-
-					$browser = 'rgb(' . round($rgb[0], 0) . ',' . round($rgb[1], 0) . ',' . round($rgb[2], 0) . ')';
-					*/
-					
 					$browser = $bin_colors[$row[$column]->value];
 					
 					$html .= ' style="background:' . $browser . ';"';
 				}
-				
-				
+								
 				if ($column == 'classification')
 				{
 					$html .= ' class="classification"';
@@ -1039,6 +1026,30 @@ function output_tree_table($svg, $table, $bin_colors, $selection = [])
 				if ($column == 'typestatus')
 				{
 					$html .= '●';
+				}
+				elseif ($column == 'alignment')
+				{
+					
+					$width = 48;
+					
+					$html .= '<div style="background-color:#EBEBEB;width:' . $width . 'px">';
+					
+					$len = $row[$column]->value->len;
+					
+					$start = $row[$column]->value->spans[0][0];
+					$end = $row[$column]->value->spans[0][1];
+					
+					$x = round($width * ($row[$column]->value->spans[0][0])/$len, 0);
+					$w = round($width * ($row[$column]->value->spans[0][1] - $row[$column]->value->spans[0][0])/$len, 0);
+
+					$html .= '<div style="height:1em;margin-left:' . $x . 'px;background-color:#C0C0C0;width:' . $w . 'px">';
+					
+					// $html .= $len;
+					$html .= '</div>';
+					$html .= '</div>';
+				
+				
+					//$html .= $row[$column]->value;
 				}
 				else
 				{
