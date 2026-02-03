@@ -256,6 +256,11 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode (<a href="record/CALI045-19">CALI045-19</a>) where BOLD has a specimen image but the museum specimen <a href="https://data.nhm.ac.uk/object/06233359-cc67-4c09-b56e-2a1c4d98d0e9/1760005475174">NHMUK013377209</a>(the NHM) does not .</li>';
 		echo '</ul>';
 		
+		echo '<li>Nomenclature</li>';
+		echo '<ul>';
+		echo '<li><i>Dicrotendipes sinicus</i> had to be published twice, <a href="https://doi.org/10.1111/zsc.12331">doi:10.1111/zsc.12331</a> and <a href="https://doi.org/10.5324/cjcr.v0i34.4079">doi:10.5324/cjcr.v0i34.4079</a></li>';
+		echo '<li><i>Congeria</i> species published twice, <a href="https://doi.org/10.1186/1742-9994-10-5">doi:10.1186/1742-9994-10-5</a> and <a href="https://doi.org/10.20302/NC.2023.32.29">doi:10.20302/NC.2023.32.29</a></li>';
+		echo '</ul>';		
 
 		
 		echo '</ul>';
