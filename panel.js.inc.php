@@ -109,7 +109,7 @@ function show_panel_museumid(museumid) {
 							} else {							
 								html += data.hits[i].occurrenceID;
 							}
-							html + '</li></ul>';						
+							html += '</li></ul>';						
 						}
 						
 					}
