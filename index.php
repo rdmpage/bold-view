@@ -221,6 +221,9 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode (<a href="record/GBMOR866-13">GBMOR866-13</a>) for a cricket endemic to New Caledonia that lacks coordinates, but specimen MNHN:ENSIF 2785 matches GBIF record <a href="https://www.gbif.org/occurrence/583403653">583403653</a>) that does. See also <a href="https://doi.org/10.1371/journal.pone.0048047">doi:10.1371/journal.pone.0048047</a>.</li>';
 
 		echo '<li>View a barcode (<a href="record/GBCAA23334-24">GBCAA23334-24</a>) for a Chinese cricket that lacks coordinates, but GenBank record (<a href="https://www.ncbi.nlm.nih.gov/nuccore/OP799996">OP799996</a>) has isolate number with code based on lcations in supplementary material in paper (see <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10475508">PMC10475508</a>).</li>';
+
+		echo '<li>View a barcode (<a href="record/GBMA14310-15">GBMA14310-15</a>) for a rodent that lacks full name or coordinates, but paper
+		has both in supplementary material (see <a href="https://doi.org/10.1093/zoolinnean/zlaa040">doi:10.1093/zoolinnean/zlaa040</a>).</li>';
 		
 		
 		
