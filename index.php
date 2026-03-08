@@ -11,9 +11,7 @@ require_once (dirname(__FILE__) . '/taxonomy/taxonomy.php');
 function html_start($title = '')
 {
 	global $config;
-	
-	get_language();
-	
+
 	echo '<html>';
 	
 	echo '<head>';
@@ -122,6 +120,20 @@ echo '</script>' . "\n";
 	*/
 
 	
+	$lang_switcher = '';
+	$current_lang = get_language();
+	foreach ($config['languages'] as $lang)
+	{
+		if ($lang === $current_lang)
+		{
+			$lang_switcher .= '<li><span style="opacity:0.5">' . get_language_name($lang) . '</span></li>';
+		}
+		else
+		{
+			$lang_switcher .= '<li><a href="' . $config['web_root'] . '?lang=' . $lang . '">' . get_language_name($lang) . '</a></li>';
+		}
+	}
+
 	echo '<nav>
 	<ul>
 		<li><a href=".">' . get_text(['nav', 'home']) . '</a></li>
@@ -133,6 +145,7 @@ echo '</script>' . "\n";
 		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
 		<li><a href="api">' . get_text(['nav', 'api']) . '</a></li>
 		<li><a href="https://github.com/rdmpage/bold-view/issues" target="_new">' . get_text(['nav', 'feedback']) . '</a></li>
+		' . $lang_switcher . '
 	</ul>
 	</nav>';
 	
@@ -1254,7 +1267,8 @@ function display_recordset($id)
 		echo '<div id="filtered_map"></div>';
 		
 		// images
-		echo '<h2>Images</h2>';
+		echo '<h2>'. get_text(['recordset', 'images']) . '</h2>';
+		echo '<p>'. get_text(['recordset', 'images_lede']) . '</p>';		
 
 		echo '<div class="gallery">
 		<ul id="rs_gallery"></ul>
