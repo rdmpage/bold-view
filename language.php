@@ -153,8 +153,11 @@ function init_language()
 		return;
 	}
 
-	// 2. Previously stored cookie preference
-	if (isset($_COOKIE['language']) && in_array($_COOKIE['language'], $available))
+	// 2. Previously stored cookie preference — only when the switcher is on;
+	//    when it is off the config default should always win.
+	if (!empty($config['show_language_switcher'])
+		&& isset($_COOKIE['language'])
+		&& in_array($_COOKIE['language'], $available))
 	{
 		$config['lang'] = $_COOKIE['language'];
 		return;
