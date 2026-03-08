@@ -160,8 +160,9 @@ function init_language()
 		return;
 	}
 
-	// 3. Browser Accept-Language header
-	if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+	// 3. Browser Accept-Language header — only when the switcher is on so users
+	//    are never silently shown a language they have no way to change back from.
+	if (!empty($config['show_language_switcher']) && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 	{
 		foreach (parse_accept_language($_SERVER['HTTP_ACCEPT_LANGUAGE']) as $code)
 		{
