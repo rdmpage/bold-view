@@ -795,25 +795,12 @@ function display_bin ($id, $limit = 100)
 			}
 		}
 		
-		if (isset($doc->images))
-		{
-			echo '<h3>' . get_text(['bin', 'images']) . '</h3>';
-			echo '<p>' . get_text(['bin', 'images_lede']) . '</p>';
+		echo '<h3>' . get_text(['bin', 'images']) . '</h3>';
+		echo '<p>' . get_text(['bin', 'images_lede']) . '</p>';
 
-			echo '<div class="gallery">';
-			echo '<ul>';
-			foreach ($doc->images as $image)
-			{
-				echo '<li>';
-				// echo '<div>' . $image->title . '</div>';
-				echo '<img title="' .  $image->title  . '" . onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . str_replace('www', 'v4', $image->url)  . '">';
-				echo '</li>';
-			}
-			echo '<!-- need this to avoid distorting last image -->
-    <li></li>';
-			echo '</ul>';
-			echo '</div>';
-		}
+		echo '<div class="gallery">
+		<ul id="bin_gallery"></ul>
+		</div>';
 		
 	 	echo '<h3>' . get_text(['record', 'tsne']) . '</h3>';
 		echo '<p>' . get_text(['record', 'tsne_lede']) . '</p>';
@@ -869,7 +856,9 @@ function display_bin ($id, $limit = 100)
 				});	
 			}
 			
-			tsne ("' . urlencode($id) . '");	
+			tsne ("' . urlencode($id) . '");
+
+		load_gallery("bin_gallery", "api.php?bin=' . rawurlencode($id) . '&images", 1, 48);
 		</script>
 		';
 
@@ -1256,13 +1245,9 @@ function display_recordset($id)
 		
 		// images
 		echo '<h2>Images</h2>';
-		
-		echo '<p class="warning">This is a placeholder until I add a gallery for images.</p>';
-		
+
 		echo '<div class="gallery">
-		<ul id="images">
-		</ul>
-		<!-- <button id="more_images">More</button> -->
+		<ul id="rs_gallery"></ul>
 		</div>';
 		
 		
@@ -1281,40 +1266,7 @@ function display_recordset($id)
 		echo 'map_fit_bounds(' . json_encode($doc->spatialCoverage) . ');';
 	}
 	
-	// for now just get a subset of images, need a more elegant solution,
-	// something like GBIF's "more" button in their gallery
-	
-	echo 'function recordset_images(id) {									
-			var url = "api.php?recordset=" + id + "&page=1&limit=100&images";
-			
-			fetch(url).then(
-				function(response){
-					if (response.status != 200) {
-						console.log("Looks like there was a problem. Status Code: " + response.status);
-						return;
-					}
-			
-					response.json().then(function(data) {
-						var html = "";
-						
-						for (var i in data.hits) {
-							html += "<li>";
-							html += "<img onclick=\"show_panel_snippet(&quot;api.php?image=" + encodeURI(data.hits[i].url) +"&format=html&quot;)\" src=\"" + data.hits[i].url.replace("www", "v4") + "\"></li>";
-						}						
-						
-						html += "<li id=\"last\"></li>";
-						
-						var image_elment = document.getElementById("images");
-						
-						var current_html = image_elment.innerHTML;
-
-						image_elment.innerHTML = current_html + html;
-					});
-				});
-		}';
-	
-	
-	echo 'recordset_images("' . $id . '");';
+	echo 'load_gallery("rs_gallery", "api.php?recordset=' . $id . '&images", 1, 48);';
 	
 	echo '</script>';
 		

@@ -157,3 +157,58 @@ function close_panel() {
 	var element = document.getElementById('panel');
 	element.style.transform = "scaleX(0.00001)";
 }
+
+//----------------------------------------------------------------------------------------
+// Load a page of images into a gallery <ul>.
+// Appends a clickable "Load more images" tile when more pages may exist, or an empty
+// spacer <li> on the last page so the final image does not stretch to fill the row.
+function load_gallery(listId, baseUrl, page, pageSize) {
+	var list = document.getElementById(listId);
+
+	// Remove any existing "Load more" tile and spacer before fetching
+	var existing = list.querySelector('li.gallery_more');
+	if (existing) existing.remove();
+	var spacer = list.querySelector('li.gallery_spacer');
+	if (spacer) spacer.remove();
+
+	var url = baseUrl + "&page=" + page + "&limit=" + pageSize;
+
+	fetch(url).then(function(response) {
+		if (response.status != 200) {
+			console.log("Gallery load failed. Status: " + response.status);
+			return;
+		}
+		response.json().then(function(data) {
+			for (var i = 0; i < data.hits.length; i++) {
+				var img = data.hits[i];
+				var li = document.createElement('li');
+				var im = document.createElement('img');
+				im.title = img.title || '';
+				im.src = img.url.replace('www', 'v4');
+				im.setAttribute('onclick',
+					'show_panel_snippet("api.php?image=' +
+					encodeURIComponent(img.url) + '&format=html")');
+				li.appendChild(im);
+				list.appendChild(li);
+			}
+
+			if (data.hits.length >= pageSize) {
+				// More pages may exist — append a clickable tile
+				var nextPage = page + 1;
+				var more = document.createElement('li');
+				more.className = 'gallery_more';
+				more.textContent = 'Load more images';
+				more.onclick = function() {
+					load_gallery(listId, baseUrl, nextPage, pageSize);
+				};
+				list.appendChild(more);
+			}
+
+			// Always append empty spacer as last child so it absorbs extra
+			// row space via :last-child { flex-grow: 10 }
+			var sp = document.createElement('li');
+			sp.className = 'gallery_spacer';
+			list.appendChild(sp);
+		});
+	});
+}

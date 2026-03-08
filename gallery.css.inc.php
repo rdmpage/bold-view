@@ -41,8 +41,25 @@
   min-width: 90%;
   object-fit: cover;
   vertical-align: bottom;
-  
+
   /* border-radius:0.2em; */
-  
-  border:1px solid #CCC; 
-}	
+
+  border:1px solid #CCC;
+}
+
+.gallery li.gallery_more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-basis: 100px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px dashed currentColor;
+  opacity: 0.6;
+  font-size: 0.85em;
+  text-align: center;
+  padding: 0.5em;
+  user-select: none;
+  box-sizing: border-box;
+}

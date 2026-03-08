@@ -825,10 +825,31 @@ function main()
 		{
 			if (isset($_GET['tsne']))
 			{
-				display_bin_tsne($bin, $limit, $callback);	
-				$handled = true;				
-			}		
-		
+				display_bin_tsne($bin, $limit, $callback);
+				$handled = true;
+			}
+
+			if (!$handled)
+			{
+				if (isset($_GET['images']))
+				{
+					$page = 0;
+					if (isset($_GET['page']))
+					{
+						$page = (int)$_GET['page'] - 1;
+					}
+					$page_size = 48;
+					if (isset($_GET['limit']))
+					{
+						$page_size = (int)$_GET['limit'];
+					}
+					$offset = $page * $page_size;
+					$filter = 'bin_uri:' . $bin;
+					display_paged_images($offset, $page_size, $filter, $callback);
+					$handled = true;
+				}
+			}
+
 			if (!$handled)
 			{
 				display_bin($bin, $limit, $format, $callback);
