@@ -1427,7 +1427,52 @@ function get_recordset_spatial_extent($id)
 }
 
 //----------------------------------------------------------------------------------------
-// If GeoJSON spatial coverage is a Point convert to an enclosing polygon, 
+// Return the bounding box of all records matching an arbitrary filter string.
+// Reuses filters_to_sql() so it works for any filter type (recordset, taxon,
+// country_iso, etc.).  Returns a GeoJSON polygon string, or null if no records
+// match or the filter is empty.
+function get_filter_spatial_extent($filter_string)
+{
+	global $db;
+
+	if (trim($filter_string) == '')
+	{
+		return null;
+	}
+
+	$filters = parse_filter_url_parameter($filter_string);
+	if (empty($filters))
+	{
+		return null;
+	}
+
+	$filter_sql = filters_to_sql($filters);
+	if (trim($filter_sql) == '')
+	{
+		return null;
+	}
+
+	$sql = "SELECT ST_AsGeoJSON(ST_Envelope(ST_Collect(boldvector.coord))) AS envelope
+	FROM boldvector
+	INNER JOIN boldmeta USING(processid)
+	WHERE $filter_sql";
+
+	$result = pg_query($db, $sql);
+
+	$extent = null;
+	while ($row = pg_fetch_assoc($result))
+	{
+		if ($row['envelope'])
+		{
+			$extent = force_polygon($row['envelope']);
+		}
+	}
+
+	return $extent;
+}
+
+//----------------------------------------------------------------------------------------
+// If GeoJSON spatial coverage is a Point convert to an enclosing polygon,
 // useful for maps where we have only one point to display but want to provide
 // sensible bounds for viewing the map.
 function force_polygon($spatialCoverage)

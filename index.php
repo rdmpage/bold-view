@@ -887,10 +887,20 @@ function display_map ($filter = "")
 			</div>';		
  		
 	echo '<script>
-			create_large_map("map", true, "' . $filter . '");
-		</script>';
+			create_large_map("map", true, "' . $filter . '");';
 
-	html_end();		
+	if ($filter !== '')
+	{
+		$extent = get_filter_spatial_extent($filter);
+		if ($extent)
+		{
+			echo 'map_fit_bounds(' . json_encode($extent) . ');';
+		}
+	}
+
+	echo '</script>';
+
+	html_end();
 }
 
 
