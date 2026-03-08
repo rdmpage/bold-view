@@ -8,7 +8,7 @@ global $config;
 date_default_timezone_set('UTC');
 
 $local = false;
-//$local = true;
+$local = true;
 
 $config['site_name'] = "Bold View";
 
@@ -27,6 +27,8 @@ $config['languages'] = ['en', 'zh'];
 
 // Default language is English
 $config['lang'] = 'en';
-//$config['lang'] = 'zh';
+
+// Show language switcher in the nav bar (enable when translation coverage is sufficient)
+$config['show_language_switcher'] = false;
 
 ?>

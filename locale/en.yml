@@ -34,6 +34,9 @@ en:
     title: Title
     view: View
     
+  map:
+    searching: "Searching..."
+     
   nav:
     api: API
     blast: DNA Search  
@@ -75,6 +78,8 @@ en:
     
     
   recordset:
+    images: Images
+    images_lede: Images for barcodes in this dataset.  
     lede: A dataset comprises a set of barcodes.
     map: Map
     map_lede: Localities of barcodes in this dataset.

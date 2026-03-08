@@ -121,16 +121,19 @@ echo '</script>' . "\n";
 
 	
 	$lang_switcher = '';
-	$current_lang = get_language();
-	foreach ($config['languages'] as $lang)
+	if (!empty($config['show_language_switcher']))
 	{
-		if ($lang === $current_lang)
+		$current_lang = get_language();
+		foreach ($config['languages'] as $lang)
 		{
-			$lang_switcher .= '<li><span style="opacity:0.5">' . get_language_name($lang) . '</span></li>';
-		}
-		else
-		{
-			$lang_switcher .= '<li><a href="' . $config['web_root'] . '?lang=' . $lang . '">' . get_language_name($lang) . '</a></li>';
+			if ($lang === $current_lang)
+			{
+				$lang_switcher .= '<li><span style="opacity:0.5">' . get_language_name($lang) . '</span></li>';
+			}
+			else
+			{
+				$lang_switcher .= '<li><a href="' . $config['web_root'] . '?lang=' . $lang . '">' . get_language_name($lang) . '</a></li>';
+			}
 		}
 	}
 

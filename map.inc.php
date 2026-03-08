@@ -260,7 +260,7 @@ function map_fit_bounds(s) {
 function map_search(geo, filter = '') {
 
 	// clear stuff
-	document.getElementById('maphits').innerHTML = "Searching...";
+	document.getElementById('maphits').innerHTML = "<?php echo get_text(['map', 'searching']); ?>";
 	
 	// move to where search is
 	for (var i in geo.geometry.coordinates) {
