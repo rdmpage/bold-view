@@ -287,7 +287,13 @@ function default_display($error_msg = '')
 		echo '<li><i>Dicrotendipes sinicus</i> had to be published twice, <a href="https://doi.org/10.1111/zsc.12331">doi:10.1111/zsc.12331</a> and <a href="https://doi.org/10.5324/cjcr.v0i34.4079">doi:10.5324/cjcr.v0i34.4079</a></li>';
 		echo '<li><i>Congeria</i> species published twice, <a href="https://doi.org/10.1186/1742-9994-10-5">doi:10.1186/1742-9994-10-5</a> and <a href="https://doi.org/10.20302/NC.2023.32.29">doi:10.20302/NC.2023.32.29</a></li>';
 		echo '<li><i>Leurus davidwahli</i> is not the species name, it is <li><i>Leurus wahli</i> published in <a href="https://doi.org/10.11646/zootaxa.5529.3.5">doi:10.11646/zootaxa.5529.3.5</a> and named after David B. Wahl</li>';
-		echo '</ul>';		
+		echo '</ul>';	
+		
+		echo '<li>BIN Maps</li>';
+		echo '<ul>';
+		echo '<li>The BINS for sequences related to (<a href="record/GBMNF4584-22">GBMNF4584-22</a>) 
+		form tight phylogenetic and geographic clusters, despite a recent paper concluding that they are all one species (<a href="https://doi.org/10.3897/zookeys.1106.81386">doi:10.3897/zookeys.1106.81386</a>).</li>';
+		echo '</ul>';	
 
 		
 		echo '</ul>';
@@ -476,9 +482,11 @@ function display_barcode($id, $limit = 50)
 	 	<div id="alignment" class="alignment"></div>';  
 	 	*/
 
+	 	echo '<div id="bin_map_section">';
 	 	echo '<h3>' . get_text(['record', 'bin_map']) . '</h3>';
 		echo '<p>' . get_text(['record', 'bin_map_lede']) . '</p>';
 		echo '<div id="bin_map"></div>';
+		echo '</div>';
 
 	 	echo '<h3>' . get_text(['record', 'tsne']) . '</h3>';
 		echo '<p>' . get_text(['record', 'tsne_lede']) . '</p>';
@@ -623,9 +631,14 @@ echo '<script>
 			fetch(url).then(function(response) {
 				if (response.status != 200) {
 					console.log("BIN map load failed. Status: " + response.status);
+					document.getElementById("bin_map_section").style.display = "none";
 					return;
 				}
 				response.json().then(function(data) {
+					if (!data.features || data.features.length === 0) {
+						document.getElementById("bin_map_section").style.display = "none";
+						return;
+					}
 					create_map("bin_map");
 					add_bin_map_data(data);
 				});
