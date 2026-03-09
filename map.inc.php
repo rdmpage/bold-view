@@ -380,8 +380,9 @@ function add_bin_map_data(data) {
 				if (props.identification) label += '<br>' + props.identification;
 				layer.bindPopup(label);
 			} else if (props.bin_uri) {
-				layer.bindTooltip(props.bin_uri + ' (' + props.count + ' records)',
-					{sticky: true});
+				layer.bindPopup(props.bin_uri + ' (' + props.count + ' records)');
+				layer.on('mouseover', function() { this.openPopup(); });
+				layer.on('mouseout',  function() { this.closePopup(); });
 			}
 		}
 	}).addTo(map);
