@@ -342,6 +342,52 @@ function map_search(geo, filter = '') {
 				
 				document.getElementById("maphits").innerHTML = html;
 			});
-	});										
-}		
+	});
+}
+
+//--------------------------------------------------------------------------------
+// Render a BIN map GeoJSON FeatureCollection (mixed Points and Polygons).
+// Points are drawn as circle markers; polygons are filled with the BIN colour
+// stored in feature.properties.color.  Fits the map to the layer bounds.
+function add_bin_map_data(data) {
+	clear_map();
+
+	geojson = L.geoJson(data.features, {
+		pointToLayer: function(feature, latlng) {
+			return L.circleMarker(latlng, {
+				radius: 5,
+				fillColor: feature.properties.color || '#333399',
+				color: '#ffffff',
+				weight: 1,
+				opacity: 1,
+				fillOpacity: 0.85
+			});
+		},
+		style: function(feature) {
+			if (feature.geometry.type === 'Point') return {};
+			var c = feature.properties.color || '#333399';
+			return {
+				color: c,
+				fillColor: c,
+				fillOpacity: 0.2,
+				weight: 1.5
+			};
+		},
+		onEachFeature: function(feature, layer) {
+			var props = feature.properties;
+			if (props.processid) {
+				var label = props.processid;
+				if (props.identification) label += '<br>' + props.identification;
+				layer.bindPopup(label);
+			} else if (props.bin_uri) {
+				layer.bindTooltip(props.bin_uri + ' (' + props.count + ' records)',
+					{sticky: true});
+			}
+		}
+	}).addTo(map);
+
+	if (geojson.getBounds().isValid()) {
+		map.fitBounds(geojson.getBounds(), {padding: [10, 10]});
+	}
+}
 </script>
