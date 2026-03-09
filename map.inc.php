@@ -2,8 +2,11 @@
 <link rel="stylesheet" href="js/leaflet-0.7.3/leaflet.css" />
 <script src="js/leaflet-0.7.3/leaflet.js" type="text/javascript"></script>
 
-<link rel="stylesheet" href="js/leaflet.draw/leaflet.draw.css" /> 
+<link rel="stylesheet" href="js/leaflet.draw/leaflet.draw.css" />
 <script src="js/leaflet.draw/leaflet.draw.js" type="text/javascript"></script>
+
+<!-- turf.js — client-side geospatial analysis (buffering, etc.) -->
+<script src="js/turf@6.min.js" type="text/javascript"></script>
 
 <style>
 .mydivicon{
@@ -347,12 +350,24 @@ function map_search(geo, filter = '') {
 
 //--------------------------------------------------------------------------------
 // Render a BIN map GeoJSON FeatureCollection (mixed Points and Polygons).
-// Points are drawn as circle markers; polygons are filled with the BIN colour
-// stored in feature.properties.color.  Fits the map to the layer bounds.
+// Points are drawn as circle markers; polygons are buffered with turf.js
+// (giving rounded corners) and filled with the BIN colour from
+// feature.properties.color.  Fits the map to the layer bounds.
 function add_bin_map_data(data) {
 	clear_map();
 
-	geojson = L.geoJson(data.features, {
+	// Buffer polygon features so corners are rounded.
+	// turf.buffer uses kilometres; 25 km gives a visible but not excessive margin.
+	var features = data.features.map(function(f) {
+		if (f.geometry && f.geometry.type === 'Polygon') {
+			var buffered = turf.buffer(f, 25, {units: 'kilometers'});
+			buffered.properties = f.properties; // preserve colour etc.
+			return buffered;
+		}
+		return f;
+	});
+
+	geojson = L.geoJson(features, {
 		pointToLayer: function(feature, latlng) {
 			return L.circleMarker(latlng, {
 				radius: 5,
