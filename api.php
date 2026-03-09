@@ -360,6 +360,19 @@ function display_barcode_related_tsne ($id, $limit = 100, $callback = '')
 }
 
 //----------------------------------------------------------------------------------------
+// Return a GeoJSON FeatureCollection for the BIN map of a barcode's related set.
+// Points: one per hit with coordinates.
+// Polygons: convex hull per BIN with >= 3 hull vertices.
+// BIN fill/stroke colour is in feature properties.color.
+function display_barcode_map($id, $limit = 50, $callback = '')
+{
+	$fc = get_barcode_map($id, $limit);
+
+	header('Content-Type: application/geo+json; charset=utf-8');
+	echo json_encode($fc);
+}
+
+//----------------------------------------------------------------------------------------
 // BIN
 function display_bin ($id, $limit = 100, $format = '', $callback = '')
 {
@@ -794,11 +807,17 @@ function main()
 			}
 			
 			if (isset($_GET['alignment']))
-			{	
-				display_barcode_alignment($barcode, $format,  $callback);				
+			{
+				display_barcode_alignment($barcode, $format,  $callback);
 				$handled = true;
 			}
-														
+
+			if (isset($_GET['map']))
+			{
+				display_barcode_map($barcode, $limit, $callback);
+				$handled = true;
+			}
+
 			if (!$handled)
 			{
 				display_barcode($barcode, $format, $callback);

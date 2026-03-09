@@ -82,6 +82,12 @@ echo '
 	height:30vh;
 	border-radius:0.5em;
 }
+
+#bin_map {
+	width:100%;
+	height:40vh;
+	border-radius:0.5em;
+}
 ';
 
 
@@ -468,8 +474,12 @@ function display_barcode($id, $limit = 50)
 		/*
 		echo '<h3>Alignment</h3>
 	 	<div id="alignment" class="alignment"></div>';  
-	 	*/   
-	 	
+	 	*/
+
+	 	echo '<h3>' . get_text(['record', 'bin_map']) . '</h3>';
+		echo '<p>' . get_text(['record', 'bin_map_lede']) . '</p>';
+		echo '<div id="bin_map"></div>';
+
 	 	echo '<h3>' . get_text(['record', 'tsne']) . '</h3>';
 		echo '<p>' . get_text(['record', 'tsne_lede']) . '</p>';
 	 	echo '<div id="tsne"></div>';
@@ -607,8 +617,24 @@ echo '<script>
 		
 		
 		
+		function barcode_map(id) {
+			var url = "api.php?barcode=" + id + "&map&limit=' . $limit . '";
+
+			fetch(url).then(function(response) {
+				if (response.status != 200) {
+					console.log("BIN map load failed. Status: " + response.status);
+					return;
+				}
+				response.json().then(function(data) {
+					create_map("bin_map");
+					add_bin_map_data(data);
+				});
+			});
+		}
+
 		related("' . urlencode($id) . '");
 		//alignment("' . urlencode($id) . '");
+		barcode_map("' . urlencode($id) . '");
 		tsne ("' . urlencode($id) . '");
 	</script>';	
 		

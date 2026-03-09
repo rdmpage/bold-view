@@ -67,6 +67,8 @@ en:
     museumid: Catalogue number
     nuc: Sequence
     nuc_lede: DNA barcode sequence.    
+    bin_map: BIN map
+    bin_map_lede: Map of barcodes in the related set, grouped by BIN. Each BIN is enclosed by its convex hull.
     related: Related barcodes
     related_lede: Neighbour-joining tree of sequences most similar to this barcode based on shared k-mers. Position of barcode is highlighted.
     title: Barcode %s

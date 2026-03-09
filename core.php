@@ -374,6 +374,147 @@ function get_barcode_related($processid, $limit)
 }
 
 //----------------------------------------------------------------------------------------
+// Compute the convex hull of a set of [longitude, latitude] pairs using
+// Andrew's monotone chain algorithm.  Returns the hull vertices in CCW order
+// (without repeating the first point).  Degenerate inputs (0–2 points, or all
+// collinear) return whatever vertices exist so the caller can decide what to do.
+function convex_hull($points)
+{
+	$n = count($points);
+	if ($n < 2)
+	{
+		return $points;
+	}
+
+	// Sort by longitude, break ties by latitude
+	usort($points, function($a, $b)
+	{
+		if ($a[0] != $b[0]) return $a[0] < $b[0] ? -1 : 1;
+		return $a[1] < $b[1] ? -1 : 1;
+	});
+
+	// Remove exact duplicates
+	$points = array_values(array_unique($points, SORT_REGULAR));
+	$n = count($points);
+	if ($n < 2)
+	{
+		return $points;
+	}
+
+	$cross = function($O, $A, $B)
+	{
+		return ($A[0] - $O[0]) * ($B[1] - $O[1])
+		     - ($A[1] - $O[1]) * ($B[0] - $O[0]);
+	};
+
+	// Lower hull
+	$lower = [];
+	foreach ($points as $p)
+	{
+		while (count($lower) >= 2
+			&& $cross($lower[count($lower)-2], $lower[count($lower)-1], $p) <= 0)
+		{
+			array_pop($lower);
+		}
+		$lower[] = $p;
+	}
+
+	// Upper hull
+	$upper = [];
+	foreach (array_reverse($points) as $p)
+	{
+		while (count($upper) >= 2
+			&& $cross($upper[count($upper)-2], $upper[count($upper)-1], $p) <= 0)
+		{
+			array_pop($upper);
+		}
+		$upper[] = $p;
+	}
+
+	// Each hull ends with a duplicate of the other's first point — remove them
+	array_pop($lower);
+	array_pop($upper);
+
+	return array_merge($lower, $upper);
+}
+
+//----------------------------------------------------------------------------------------
+// Build a GeoJSON FeatureCollection from the related barcodes of a given barcode.
+// Contains:
+//   - one Point feature per hit that has coordinates
+//   - one Polygon feature per BIN whose hull has >= 3 vertices
+// BIN colours from colour_bins() are carried into feature properties so that
+// the client can fill/stroke accordingly.
+function get_barcode_map($processid, $limit = 50)
+{
+	$related = get_barcode_related($processid, $limit);
+
+	$fc = new stdclass;
+	$fc->type = 'FeatureCollection';
+	$fc->features = [];
+
+	// Collect raw coordinates per BIN for hull computation
+	$bin_points = [];
+
+	foreach ($related->hits as $hit)
+	{
+		if (!isset($hit->feature))
+		{
+			continue;
+		}
+
+		$color = (isset($hit->bin_uri) && isset($related->bin_colors[$hit->bin_uri]))
+		       ? $related->bin_colors[$hit->bin_uri]
+		       : 'rgb(128,128,128)';
+
+		// Point feature
+		$f = new stdclass;
+		$f->type = 'Feature';
+		$f->geometry = $hit->feature->geometry;
+		$f->properties = new stdclass;
+		$f->properties->processid     = $hit->processid;
+		$f->properties->bin_uri       = $hit->bin_uri ?? null;
+		$f->properties->identification = $hit->identification ?? null;
+		$f->properties->color         = $color;
+		$fc->features[] = $f;
+
+		// Accumulate for convex hull
+		if (isset($hit->bin_uri))
+		{
+			$bin_points[$hit->bin_uri][] = $hit->feature->geometry->coordinates;
+		}
+	}
+
+	// Polygon feature per BIN with >= 3 hull vertices
+	foreach ($bin_points as $bin_uri => $points)
+	{
+		$hull = convex_hull($points);
+		if (count($hull) < 3)
+		{
+			continue; // single point or collinear — skip polygon
+		}
+
+		// Close the ring
+		$hull[] = $hull[0];
+
+		$color = $related->bin_colors[$bin_uri];
+
+		$f = new stdclass;
+		$f->type = 'Feature';
+		$f->geometry = new stdclass;
+		$f->geometry->type = 'Polygon';
+		$f->geometry->coordinates = [$hull];
+		$f->properties = new stdclass;
+		$f->properties->bin_uri = $bin_uri;
+		$f->properties->color   = $color;
+		$f->properties->count   = count($points);
+		$fc->features[] = $f;
+	}
+
+	return $fc;
+}
+
+//----------------------------------------------------------------------------------------
 // Align barcode to a reference sequence
 function get_barcode_alignment($processid, $reference_seq_name, $reference_seq) 
 {
