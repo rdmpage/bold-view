@@ -247,7 +247,13 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode (<a href="record/GBMA14310-15">GBMA14310-15</a>) for a rodent that lacks full name or coordinates, but paper
 		has both in supplementary material (see <a href="https://doi.org/10.1093/zoolinnean/zlaa040">doi:10.1093/zoolinnean/zlaa040</a>).</li>';
 		
-		
+
+		echo '<li>View a barcode (<a href="record/BIPR006-13">BIPR006-13</a>) for a <i>Nephotettix virescens</i> that 
+		is one example of a doubtful sequence listed in "The devil is in the details: Problems in DNA barcoding practices indicated by systematic evaluation of insect barcodes" (<a href="https://doi.org/10.3389/fevo.2023.1149839">doi:10.3389/fevo.2023.1149839</a>).</li>';	
+
+
+		echo '<li>View a barcode (<a href="record/GMAEA6199-22">GMAEA6199-22</a>) for Strepsiptera (likely to be <i>Elenchus varleyi</i>) that is discusse din blog post (<a href="https://iphylo.blogspot.com/2026/03/using-ai-to-understand-dna-barcoding.html">Using AI to understand a DNA barcoding mystery</a>).</li>';	
+
 		
 		echo '</ul>';
 		
