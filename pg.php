@@ -22,4 +22,6 @@ if(!$db) {
   //echo "Opened database successfully\n";
 }
 
+pg_query($db, 'SET ivfflat.probes = 40');
+
 ?>
