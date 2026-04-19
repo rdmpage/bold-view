@@ -255,6 +255,11 @@ function default_display($error_msg = '')
 		echo '<li>View a barcode (<a href="record/GMAEA6199-22">GMAEA6199-22</a>) for Strepsiptera (likely to be <i>Elenchus varleyi</i>) that is discusse din blog post (<a href="https://iphylo.blogspot.com/2026/03/using-ai-to-understand-dna-barcoding.html">Using AI to understand a DNA barcoding mystery</a>).</li>';	
 
 		
+		echo '<li>View a bee barcode (<a href="record/SICOB837-18">SICOB837-18</a>) for <i>Nomia terminata</i> that is in GBIF (<a href="https://www.gbif.org/occurrence/2986797345">2986797345</a>) as <i>Maculonomia terminata</i>. The GBIF record doesn\'t mention the barcode or GenBank sequence, but the photo shows the BOLD processid. <i>Nomia terminata</i> is the original name for <i>Maculonomia terminata</i>, see <a href="https://bionames.org/references/b86283447dbf4d793cfb1b17aefc8d5b">Classification of the Nomiinae of the Oriental region, New Guinea and the Pacific Ocean islands (Hymenoptera: Apoidea Halictidae)</a> </li>';	
+		
+		echo '<li> View a collembola barcode (<a href="record/GBMNE18123-21">GBMNE18123-21</a> that is part of a BIN where it appears that every sequence is duplicated, where one is the BOLD record, the other is the same record in GenBank. The BOLD sequences have a scientific name, the GenBank onces do not. Species is <i>Desoria calderonis</i>, described in <a href="https://doi.org/10.5852/ejt.2021.787.1599">doi:10.5852/ejt.2021.787.1599</a>.</li>';
+		
+		
 		echo '</ul>';
 		
 		echo '<li>BINs</li>';

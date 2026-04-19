@@ -22,6 +22,8 @@ if(!$db) {
   //echo "Opened database successfully\n";
 }
 
-pg_query($db, 'SET ivfflat.probes = 40');
+pg_query($db, 'SET ivfflat.probes = 1');
+//pg_query($db, 'SET ivfflat.probes = 10');
+//pg_query($db, 'SET ivfflat.probes = 40'); // experiments on improving search
 
 ?>
