@@ -624,6 +624,44 @@ function display_taxon_from_name ($name, $rank = '', $callback = '')
 }
 
 //----------------------------------------------------------------------------------------
+// Geographic hull (alpha shape style) for an admin region.
+// Returns a GeoJSON FeatureCollection with two features (hull + bbox), or 404
+// if no points match.
+function display_geo_hull($country, $province, $region, $sector, $site, $marker, $alpha, $limit, $callback = '')
+{
+	$fc = get_geo_hull($country, $province, $region, $sector, $site, $marker, $alpha, $limit);
+
+	if ($fc === null)
+	{
+		$doc = new stdclass;
+		$doc->status = 404;
+		send_doc($doc, $callback);
+		return;
+	}
+
+	header('Content-Type: application/geo+json; charset=utf-8');
+	echo json_encode($fc);
+}
+
+// List of children one admin level below the deepest specified level. Used for
+// drill-down navigation and for crawling the hierarchy from the API.
+function display_geo_children($country, $province, $region, $sector, $site, $marker, $callback = '')
+{
+	$doc = get_geo_children($country, $province, $region, $sector, $site, $marker);
+
+	if ($doc === null)
+	{
+		$err = new stdclass;
+		$err->status = 500;
+		send_doc($err, $callback);
+		return;
+	}
+
+	$doc->status = 200;
+	send_doc($doc, $callback);
+}
+
+//----------------------------------------------------------------------------------------
 // Get details for a recordset (i.e., a dataset)
 function display_recordset($id, $callback = '')
 {
@@ -937,12 +975,40 @@ function main()
 		}
 	}
 	
+	// geographic hull / children for an admin region
+	// hull=VN[&province=...][&region=...][&sector=...][&site=...]
+	//        [&marker=COI-5P][&alpha=0.3][&children=1]
+	if (!$handled)
+	{
+		if (isset($_GET['hull']))
+		{
+			$country  = $_GET['hull'];
+			$province = isset($_GET['province']) ? $_GET['province'] : '';
+			$region   = isset($_GET['region'])   ? $_GET['region']   : '';
+			$sector   = isset($_GET['sector'])   ? $_GET['sector']   : '';
+			$site     = isset($_GET['site'])     ? $_GET['site']     : '';
+			$marker   = isset($_GET['marker']) && $_GET['marker'] !== '' ? $_GET['marker'] : 'COI-5P';
+			$alpha    = isset($_GET['alpha'])  && $_GET['alpha']  !== '' ? (float)$_GET['alpha'] : 0.05;
+			$hlimit   = isset($_GET['limit'])  && $_GET['limit']  !== '' ? (int)$_GET['limit']   : 10000;
+
+			if (isset($_GET['children']))
+			{
+				display_geo_children($country, $province, $region, $sector, $site, $marker, $callback);
+			}
+			else
+			{
+				display_geo_hull($country, $province, $region, $sector, $site, $marker, $alpha, $hlimit, $callback);
+			}
+			$handled = true;
+		}
+	}
+
 	// dataset
 	if (!$handled)
-	{	
+	{
 		if (isset($_GET['recordset']))
-		{	
-			$recordset = $_GET['recordset'];		
+		{
+			$recordset = $_GET['recordset'];
 		
 			// paged result for recordset
 			$page = 0;

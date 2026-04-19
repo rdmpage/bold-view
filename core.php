@@ -1877,4 +1877,243 @@ if (0)
 	echo json_encode($doc);
 }
 
+//----------------------------------------------------------------------------------------
+// Geographic hulls (Flickr-style alpha shape) for barcode points within an
+// administrative region. Drill-down: country → province/state → region →
+// sector → site. PostGIS 3.4 lacks ST_AlphaShape so we use ST_ConcaveHull,
+// which is a different algorithm but visually similar.
+
+// Map a depth (0..4) to its boldmeta column.
+function geo_admin_column($depth)
+{
+	$cols = ['country_iso', 'province/state', 'region', 'sector', 'site'];
+	return isset($cols[$depth]) ? $cols[$depth] : null;
+}
+
+// Quote a column name for SQL: needed because two of our admin columns
+// contain a "/".
+function geo_quote_ident($col)
+{
+	return '"' . str_replace('"', '""', $col) . '"';
+}
+
+// Build the WHERE fragment + parameter list common to hull and children
+// queries. $levels is an indexed array of admin values from country (depth 0)
+// down to whatever the deepest specified level is. Empty values terminate
+// the chain. Returns [where_sql, params_array, depth_of_last_level].
+function geo_build_where($levels, $marker)
+{
+	$clauses = ['v.coord IS NOT NULL'];
+	$params  = [];
+	$depth   = -1;
+
+	foreach ($levels as $i => $value)
+	{
+		if ($value === null || $value === '')
+		{
+			break;
+		}
+		$col = geo_admin_column($i);
+		if ($col === null)
+		{
+			break;
+		}
+		$params[]   = $value;
+		$clauses[]  = 'm.' . geo_quote_ident($col) . ' = $' . count($params);
+		$depth      = $i;
+	}
+
+	if ($marker !== '' && $marker !== null)
+	{
+		$params[]  = $marker;
+		$clauses[] = 'v.marker_code = $' . count($params);
+	}
+
+	return [implode(' AND ', $clauses), $params, $depth];
+}
+
+// Return GeoJSON FeatureCollection containing two features:
+//   - hull: ST_ConcaveHull of all matching points
+//   - bbox: ST_Envelope of the same points
+// $alpha is the target_percent passed to ST_ConcaveHull (0..1, lower = tighter).
+// $limit caps the number of points fed into the hull computation. ST_ConcaveHull
+// is the dominant cost; on the full ~590k US points it takes ~30s, on a 10k
+// sample about 1s. The first $limit rows the planner returns are used (no
+// random sample, but spatial coverage is still good enough for visualisation).
+// Pass 0 to use all points.
+function get_geo_hull($country, $province = '', $region = '', $sector = '', $site = '', $marker = 'COI-5P', $alpha = 0.05, $limit = 10000)
+{
+	global $db;
+
+	if ($country === '' || $country === null)
+	{
+		return null;
+	}
+
+	// clamp
+	$alpha = (float)$alpha;
+	if ($alpha < 0.0) $alpha = 0.0;
+	if ($alpha > 1.0) $alpha = 1.0;
+
+	$limit = (int)$limit;
+	if ($limit < 0) $limit = 0;
+
+	$levels = [$country, $province, $region, $sector, $site];
+	list($where, $params, $depth) = geo_build_where($levels, $marker);
+
+	// alpha and limit are numeric literals — cast/clamped above so safe to
+	// interpolate. ST_ConcaveHull's second arg has to be a constant
+	// expression in some PostGIS builds.
+	$limit_clause = $limit > 0 ? "LIMIT $limit" : '';
+	$sql = "SELECT
+		COUNT(*) AS n,
+		ST_AsGeoJSON(ST_ConcaveHull(ST_Collect(coord), $alpha, false)) AS hull,
+		ST_XMin(ST_Collect(coord)) AS xmin,
+		ST_YMin(ST_Collect(coord)) AS ymin,
+		ST_XMax(ST_Collect(coord)) AS xmax,
+		ST_YMax(ST_Collect(coord)) AS ymax
+		FROM (
+			SELECT v.coord
+			FROM boldvector v
+			INNER JOIN boldmeta m USING(processid)
+			WHERE $where
+			$limit_clause
+		) t";
+
+	$result = pg_query_params($db, $sql, $params);
+	if (!$result)
+	{
+		return null;
+	}
+
+	$row = pg_fetch_assoc($result);
+	if (!$row || (int)$row['n'] === 0)
+	{
+		return null;
+	}
+
+	$fc = new stdclass;
+	$fc->type = 'FeatureCollection';
+
+	// RFC 7946 §5: bbox is metadata on the FeatureCollection itself, not a
+	// feature — viewers like GISLook won't render it as a polygon.
+	if ($row['xmin'] !== null && $row['ymin'] !== null
+		&& $row['xmax'] !== null && $row['ymax'] !== null)
+	{
+		$fc->bbox = [
+			(float)$row['xmin'], (float)$row['ymin'],
+			(float)$row['xmax'], (float)$row['ymax'],
+		];
+	}
+
+	$fc->features = array();
+
+	$props = new stdclass;
+	$props->country  = $country;
+	if ($province !== '') $props->province = $province;
+	if ($region   !== '') $props->region   = $region;
+	if ($sector   !== '') $props->sector   = $sector;
+	if ($site     !== '') $props->site     = $site;
+	$props->marker  = $marker;
+	$props->count   = (int)$row['n'];
+	$props->limit   = $limit;
+	$props->sampled = $limit > 0 && (int)$row['n'] >= $limit;
+	$props->depth   = $depth;
+	$props->alpha   = $alpha;
+	$props->role    = 'hull';
+
+	if ($row['hull'])
+	{
+		$f = new stdclass;
+		$f->type       = 'Feature';
+		$f->geometry   = json_decode($row['hull']);
+		$f->properties = $props;
+		$fc->features[] = $f;
+	}
+
+	return $fc;
+}
+
+// Load the static country list (iso + name) — pre-computed because scanning
+// the full dataset for distinct country codes takes ~50s.
+function get_geo_countries()
+{
+	$path = dirname(__FILE__) . '/geo_countries.json';
+	$json = @file_get_contents($path);
+	if ($json === false) return [];
+	$data = json_decode($json);
+	return is_array($data) ? $data : [];
+}
+
+// List the children one admin level below the deepest specified level.
+// Pass no levels to list countries.
+function get_geo_children($country = '', $province = '', $region = '', $sector = '', $site = '', $marker = 'COI-5P')
+{
+	global $db;
+
+	$levels = [$country, $province, $region, $sector, $site];
+
+	// Top-level country listing comes from the static file (see
+	// get_geo_countries) — runs in milliseconds instead of ~50s.
+	$is_top = ($country === '' && $province === '' && $region === '' && $sector === '' && $site === '');
+	if ($is_top)
+	{
+		$doc = new stdclass;
+		$doc->parent_depth = -1;
+		$doc->child_level  = 'country_iso';
+		$doc->marker       = $marker;
+		$doc->children     = get_geo_countries();
+		return $doc;
+	}
+
+	list($where, $params, $depth) = geo_build_where($levels, $marker);
+
+	$child_depth = $depth + 1;
+	$child_col   = geo_admin_column($child_depth);
+	if ($child_col === null)
+	{
+		// already at the leaf level — no children
+		$doc = new stdclass;
+		$doc->parent_depth = $depth;
+		$doc->child_level  = null;
+		$doc->children     = array();
+		return $doc;
+	}
+
+	$qcol = geo_quote_ident($child_col);
+
+	// non-empty filter on the child column so we don't return the empty bucket
+	$sql = "SELECT DISTINCT m.$qcol AS name
+		FROM boldvector v
+		INNER JOIN boldmeta m USING(processid)
+		WHERE $where AND m.$qcol IS NOT NULL AND m.$qcol <> ''
+		ORDER BY name";
+
+	$result = pg_query_params($db, $sql, $params);
+	if (!$result)
+	{
+		return null;
+	}
+
+	$children = array();
+	while ($row = pg_fetch_assoc($result))
+	{
+		$c = new stdclass;
+		$c->name = $row['name'];
+		$children[] = $c;
+	}
+
+	$doc = new stdclass;
+	$doc->parent_depth = $depth;
+	$doc->child_level  = $child_col;
+	if ($country  !== '') $doc->country  = $country;
+	if ($province !== '') $doc->province = $province;
+	if ($region   !== '') $doc->region   = $region;
+	if ($sector   !== '') $doc->sector   = $sector;
+	$doc->marker   = $marker;
+	$doc->children = $children;
+
+	return $doc;
+}
+
 ?>
