@@ -18,7 +18,7 @@ $region   = isset($_GET['region'])   ? trim($_GET['region'])   : '';
 $sector   = isset($_GET['sector'])   ? trim($_GET['sector'])   : '';
 $site     = isset($_GET['site'])     ? trim($_GET['site'])     : '';
 $marker   = isset($_GET['marker']) && $_GET['marker'] !== '' ? trim($_GET['marker']) : 'COI-5P';
-$alpha    = isset($_GET['alpha'])  && $_GET['alpha']  !== '' ? (float)$_GET['alpha'] : 0.05;
+$alpha    = isset($_GET['alpha'])  && $_GET['alpha']  !== '' ? (float)$_GET['alpha'] : 0.3;
 $hlimit   = isset($_GET['limit'])  && $_GET['limit']  !== '' ? (int)$_GET['limit']   : 10000;
 
 // Build the breadcrumb path. Each entry has a label, the URL parameters
@@ -43,7 +43,7 @@ function build_breadcrumb_html($levels, $marker, $alpha)
 	$crumbs[] = '<a href="geo.php">All countries</a>';
 
 	$accum = ['marker' => $marker];
-	if ($alpha != 0.05) $accum['alpha'] = $alpha;
+	if ($alpha != 0.3) $accum['alpha'] = $alpha;
 
 	foreach ($levels as $i => $lvl)
 	{

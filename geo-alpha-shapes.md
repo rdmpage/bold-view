@@ -27,7 +27,7 @@ Flickr's Clustr uses CGAL's true alpha-shape implementation. PostGIS only
 gained `ST_AlphaShape` in 3.5, and the database here is on PostGIS 3.4, so
 this implementation uses `ST_ConcaveHull(geom, target_percent, allow_holes)`
 instead — a different algorithm with a similar visual effect. Lower
-`target_percent` → tighter hull. The default is `0.05`.
+`target_percent` → tighter hull. The default is `0.3`.
 
 The bounding box is computed from `ST_XMin / ST_YMin / ST_XMax / ST_YMax`
 of the same set of points and emitted as a top-level GeoJSON `bbox`
@@ -45,7 +45,7 @@ api.php?hull=<ISO>
         [&sector=<...>]
         [&site=<...>]
         [&marker=COI-5P]   marker code, default COI-5P
-        [&alpha=0.05]      ST_ConcaveHull target_percent, 0..1
+        [&alpha=0.3]       ST_ConcaveHull target_percent, 0..1
         [&limit=10000]     point cap fed into the hull, 0 = no cap
         [&children=1]      list child names instead of returning the hull
 ```
@@ -66,7 +66,7 @@ Hull response (GeoJSON):
         "count":   10000,
         "limit":   10000,
         "sampled": true,
-        "alpha":   0.05,
+        "alpha":   0.3,
         "depth":   0,
         "role":    "hull"
       }

@@ -988,7 +988,7 @@ function main()
 			$sector   = isset($_GET['sector'])   ? $_GET['sector']   : '';
 			$site     = isset($_GET['site'])     ? $_GET['site']     : '';
 			$marker   = isset($_GET['marker']) && $_GET['marker'] !== '' ? $_GET['marker'] : 'COI-5P';
-			$alpha    = isset($_GET['alpha'])  && $_GET['alpha']  !== '' ? (float)$_GET['alpha'] : 0.05;
+			$alpha    = isset($_GET['alpha'])  && $_GET['alpha']  !== '' ? (float)$_GET['alpha'] : 0.3;
 			$hlimit   = isset($_GET['limit'])  && $_GET['limit']  !== '' ? (int)$_GET['limit']   : 10000;
 
 			if (isset($_GET['children']))

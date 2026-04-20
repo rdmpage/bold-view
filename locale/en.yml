@@ -39,9 +39,10 @@ en:
      
   nav:
     api: API
-    blast: DNA Search  
+    blast: DNA Search
     feedback: Feedback
     home: Home
+    labs: Labs
     map: Map
     search: Search
     taxonomy: Taxonomy

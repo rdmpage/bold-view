@@ -1941,7 +1941,7 @@ function geo_build_where($levels, $marker)
 // sample about 1s. The first $limit rows the planner returns are used (no
 // random sample, but spatial coverage is still good enough for visualisation).
 // Pass 0 to use all points.
-function get_geo_hull($country, $province = '', $region = '', $sector = '', $site = '', $marker = 'COI-5P', $alpha = 0.05, $limit = 10000)
+function get_geo_hull($country, $province = '', $region = '', $sector = '', $site = '', $marker = 'COI-5P', $alpha = 0.3, $limit = 10000)
 {
 	global $db;
 

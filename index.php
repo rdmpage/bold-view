@@ -152,7 +152,7 @@ echo '</script>' . "\n";
 		<li><a href="taxon/id/713">' . get_text(['nav', 'taxonomy']) . '</a></li>
 		<li><a href="map">' . get_text(['nav', 'map']) . '</a></li>
 		<li><a href="blast">' . get_text(['nav', 'blast']) . '</a></li>
-		<li><a href="api">' . get_text(['nav', 'api']) . '</a></li>
+		<li><a href="labs">' . get_text(['nav', 'labs']) . '</a></li>
 		<li><a href="https://github.com/rdmpage/bold-view/issues" target="_new">' . get_text(['nav', 'feedback']) . '</a></li>
 		' . $lang_switcher . '
 	</ul>
@@ -1455,7 +1455,34 @@ function display_api()
 	
 	echo '</div>';
 
-	html_end();	
+	html_end();
+}
+
+//----------------------------------------------------------------------------------------
+// Labs: projects that aren't ready for prime time. Linked from the main
+// navbar in place of the old "API" link.
+function display_labs()
+{
+	html_start('Labs');
+
+	echo '<div class="main">';
+
+	echo '<h1>Labs</h1>';
+	echo '<p>Experimental features and works-in-progress. These are rough around the edges but usable.</p>';
+
+	echo '<ul>';
+
+	echo '<li><h3><a href="api">API</a></h3>';
+	echo '<p>A JSON API for barcodes, BINs, recordsets, taxonomy, and geographic extents. Supports BLAST-style sequence search via POST.</p></li>';
+
+	echo '<li><h3><a href="geo.php">Geographic hulls</a></h3>';
+	echo '<p>Alpha-shape-style polygons around all barcode points in a country, drilling down through province, region, sector, and site. Inspired by Flickr&rsquo;s <a href="https://code.flickr.net/2008/10/30/the-shape-of-alpha/" target="_new"><i>The Shape of Alpha</i></a>.</p></li>';
+
+	echo '</ul>';
+
+	echo '</div>';
+
+	html_end();
 }
 
 //----------------------------------------------------------------------------------------
@@ -1633,11 +1660,20 @@ function main()
 	
 	if (!$handled)
 	{
+		if (isset($_GET['labs']))
+		{
+			display_labs();
+			$handled = true;
+		}
+	}
+
+	if (!$handled)
+	{
 		if (isset($_GET['api']))
 		{
 			display_api();
 			$handled = true;
-		
+
 		}
 	}
 	

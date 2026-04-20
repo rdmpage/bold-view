@@ -41,6 +41,10 @@ RewriteRule recordset/(.*)$ ?recordset=$1 [NC,L]
 
 RewriteRule api$ ?api [NC,L]
 
+# labs
+
+RewriteRule labs$ ?labs [NC,L]
+
 # language
 
 RewriteRule lang/(.*)$ ?lang=$1 [NC,L]
