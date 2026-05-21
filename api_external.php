@@ -159,6 +159,8 @@ function display_accession($accession, $format = '', $callback = '')
 function display_material_examined($museumid, $format = '', $callback = '')
 {
 	$url = 'https://material-examined.herokuapp.com/service/api.php?code=' . urlencode($museumid) . '&match';
+	$url = 'https://iphylo.org/material-examined/service/api.php?code=' . urlencode($museumid) . '&match';
+	
 	$json = get($url);	
 	
 	$doc = json_decode($json);
