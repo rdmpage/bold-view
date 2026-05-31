@@ -474,7 +474,7 @@ function display_barcode($id, $limit = 50)
 			{
 				echo '<li>';
 				echo '<div>' . $image->title . '</div>';
-				echo '<img title="' .  $image->title  . '" onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="' . str_replace('www.', 'v4.', $image->url)  . '">';
+				echo '<img title="' .  $image->title  . '" onclick="show_panel_snippet(&quot;api.php?image=' . urlencode($image->url) . '&format=html&quot;)" src="image_proxy.php?url=' . urlencode(str_replace('www.', 'v4.', $image->url))  . '">';
 				echo '</li>';
 			}
 			echo '<!-- need this to avoid distorting last image -->

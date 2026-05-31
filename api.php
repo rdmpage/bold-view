@@ -28,7 +28,7 @@ function display_image ($id, $format = '', $callback = '')
 		{
 			case 'html':
 				// to do: we want to return a small snippet, not a full page
-				$html = '<img src="' . str_replace('www', 'v4', $doc->url) . '" width="100%">';
+				$html = '<img src="image_proxy.php?url=' . urlencode(str_replace('www', 'v4', $doc->url)) . '" width="100%">';
 
 				$html .= '<dl>';
 				

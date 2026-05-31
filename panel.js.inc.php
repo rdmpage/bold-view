@@ -184,7 +184,7 @@ function load_gallery(listId, baseUrl, page, pageSize) {
 				var li = document.createElement('li');
 				var im = document.createElement('img');
 				im.title = img.title || '';
-				im.src = img.url.replace('www', 'v4');
+				im.src = 'image_proxy.php?url=' + encodeURIComponent(img.url.replace('www', 'v4'));
 				im.setAttribute('onclick',
 					'show_panel_snippet("api.php?image=' +
 					encodeURIComponent(img.url) + '&format=html")');
