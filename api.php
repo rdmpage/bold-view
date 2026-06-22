@@ -140,7 +140,7 @@ function display_barcode ($id, $format = '', $callback = '')
 				
 				if (isset($doc->images))
 				{
-					$html .= '<img src="' . str_replace('www', 'v4', $doc->images[0]->url) . '" width="100%">';
+					$html .= '<img src="image_proxy.php?url=' . urlencode(str_replace('www', 'v4', $doc->images[0]->url)) . '" width="256">';
 				}				
 						
 				send_html($html, $doc->status);
