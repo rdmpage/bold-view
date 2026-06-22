@@ -259,6 +259,9 @@ function default_display($error_msg = '')
 		
 		echo '<li> View a collembola barcode (<a href="record/GBMNE18123-21">GBMNE18123-21</a> that is part of a BIN where it appears that every sequence is duplicated, where one is the BOLD record, the other is the same record in GenBank. The BOLD sequences have a scientific name, the GenBank onces do not. Species is <i>Desoria calderonis</i>, described in <a href="https://doi.org/10.5852/ejt.2021.787.1599">doi:10.5852/ejt.2021.787.1599</a>.</li>';
 		
+		echo '<li> View a trichoptera barcode (<a href="record/GBMNE18123-21">NTSMB174-09</a> that has name "Smicridea R. n. sp. 18 BR" and catalogue number UMSP000088771. GenBank accession KX143199 comes from <a href="https://doi.org/10.1098/rstb.2016.0025">doi:10.1098/rstb.2016.0025</a>, but species is described in <a href="https://doi.org/10.1111/aen.12417">doi:10.1111/aen.12417</a> which has table listing voucher codes and BOLD barcodes. "Smicridea R." resumably refers to <i>Smicridea (Rhyacophylax)</i>. </li>';
+		
+		
 		
 		echo '</ul>';
 		

@@ -23,7 +23,7 @@ function show_panel() {
 }
 
 //----------------------------------------------------------------------------------------
-// Show a sumamry of an accession number by calling external API wrapper and formatting
+// Show a summary of an accession number by calling external API wrapper and formatting
 // the JSON 
 function show_panel_accession(accession) {
 	show_panel(event);
