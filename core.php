@@ -938,10 +938,19 @@ function newick_to_svg($newick)
 // Given a tree in newick format, create the table of labels to display
 function tree_labels($obj, $newick)
 {
+	global $config;
+	
 	$table = new stdclass;
 	
 	// columns (database fields)
-	$table->columns = array('processid', 'alignment', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	if ($config['show_alignment'])
+	{
+		$table->columns = array('processid', 'alignment', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	}
+	else
+	{
+		$table->columns = array('processid', 'typestatus', 'insdc_acs', 'bin_uri', 'identification', 'classification');
+	}	
 	
 	// column names for display (by default same as database field)
 	$table->column_aliases = array();
