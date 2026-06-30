@@ -19,7 +19,7 @@ if ($local)
 }
 else
 {
-	$config['web_server']	= 'https://bold-view-bf2dfe9b0db3.herokuapp.com';
+	$config['web_server']	= 'https://boldview.iphylo.org';
 	$config['web_root']		= '/';
 }
 
@@ -30,5 +30,8 @@ $config['lang'] = 'en';
 
 // Show language switcher in the nav bar (enable when translation coverage is sufficient)
 $config['show_language_switcher'] = false;
+
+// Show alignment of individual sequences in tree view
+$config['show_alignment'] = false;
 
 ?>
