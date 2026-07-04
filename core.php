@@ -958,8 +958,17 @@ function tree_labels($obj, $newick)
 	{
 		$table->column_aliases[$column] = $column;
 	}
-	$table->column_aliases['typestatus'] = 'type';
-	$table->column_aliases['alignment'] = 'align';
+	
+	// for some columns we need shorter aliases, 
+	// make sure we only generate aliases for columns that we actually have
+	if (in_array('typestatus', $table->columns))
+	{
+		$table->column_aliases['typestatus'] = 'type';
+	}
+	if (in_array('alignment', $table->columns))
+	{
+		$table->column_aliases['alignment'] = 'align';
+	}
 	
 	$table->rows = array();
 
