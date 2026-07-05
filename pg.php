@@ -14,7 +14,12 @@ $port        = "port = " . getenv('POSTGRES_PORT');
 $dbname      = "dbname = " . getenv('POSTGRES_DATABASE');
 $credentials = "user = " . getenv('POSTGRES_USERNAME') . " password = " . getenv('POSTGRES_PASSWORD');
 
-$db = pg_pconnect( "$host $port $dbname $credentials gssencmode=disable"  );
+// sslmode=require forces the connection to be encrypted (libpq defaults to
+// "prefer", which silently falls back to plaintext). Use verify-full once the
+// server has a CA-signed / pinned certificate for full protection.
+$sslmode = getenv('POSTGRES_SSLMODE') ?: 'require';
+
+$db = pg_pconnect( "$host $port $dbname $credentials sslmode=$sslmode gssencmode=disable"  );
 if(!$db) {
   echo "Error : Unable to open database\n";
   exit();
