@@ -205,14 +205,12 @@ function get_barcode($processid)
 	
 	$hit = null;
 
-	$sql = "SELECT *, ST_AsText(coord) AS point FROM boldvector WHERE processid='" . $processid . "'";
-
-	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point 
-		FROM boldvector 
+	$sql = "SELECT *, ST_AsText(boldvector.coord) AS point
+		FROM boldvector
 		INNER JOIN boldmeta USING(processid)
-		WHERE processid='" . $processid . "'";
-		
-	$result = pg_query($db, $sql);
+		WHERE processid = $1";
+
+	$result = pg_query_params($db, $sql, array($processid));
 	
 	while ($row = pg_fetch_assoc($result))
 	{
@@ -1559,7 +1557,72 @@ function get_recordset($id)
 		$obj->took = round($endTime - $startTime, 2);	
 	}
 	
-	return $obj;	
+	return $obj;
+}
+
+//----------------------------------------------------------------------------------------
+// Works that cite this dataset. Reads the dataset_citation table (mirror of
+// bold-dataset-citations/results/citations.csv), which is loaded separately with
+// owner privileges — this app's role is read-only. Returns [] gracefully until
+// the table exists. Each entry is structured link data; the view builds the HTML.
+function get_recordset_citations($id)
+{
+	global $db;
+
+	$citations = array();
+
+	// The table is loaded out-of-band (owner-privileged); tolerate its absence.
+	$reg = pg_query($db, "SELECT to_regclass('public.dataset_citation') AS t");
+	$exists = $reg ? pg_fetch_result($reg, 0, 't') : null;
+	if (!$exists)
+	{
+		return $citations;
+	}
+
+	$sql = "SELECT doi, handle, urn, url
+	        FROM dataset_citation
+	        WHERE dataset = $1
+	        ORDER BY doi NULLS LAST, url NULLS LAST";
+
+	$result = pg_query_params($db, $sql, array($id));
+	if ($result)
+	{
+		while ($row = pg_fetch_assoc($result))
+		{
+			$link = citation_row_to_link($row);
+			if ($link)
+			{
+				$citations[] = $link;
+			}
+		}
+	}
+
+	return $citations;
+}
+
+//----------------------------------------------------------------------------------------
+// Turn a dataset_citation row into a resolvable link. One citing work may carry
+// several identifiers; prefer the most canonical/resolvable: doi > url > handle > urn.
+// Returns ['href', 'label', 'kind'] or null if the row has no usable identifier.
+function citation_row_to_link($row)
+{
+	if (!empty($row['doi']))
+	{
+		return array('href' => 'https://doi.org/' . $row['doi'], 'label' => $row['doi'], 'kind' => 'doi');
+	}
+	if (!empty($row['url']))
+	{
+		return array('href' => $row['url'], 'label' => $row['url'], 'kind' => 'url');
+	}
+	if (!empty($row['handle']))
+	{
+		return array('href' => 'https://hdl.handle.net/' . $row['handle'], 'label' => $row['handle'], 'kind' => 'handle');
+	}
+	if (!empty($row['urn']))
+	{
+		return array('href' => 'https://nbn-resolving.org/' . $row['urn'], 'label' => $row['urn'], 'kind' => 'urn');
+	}
+	return null;
 }
 
 //----------------------------------------------------------------------------------------

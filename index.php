@@ -284,7 +284,7 @@ function default_display($error_msg = '')
 		
 		echo '<li>Record sets</li>';
 		echo '<ul>';
-		echo '<li>View recordset <a href="recordset/DS-2019PHY">DS-2019PHY</a> which is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
+		echo '<li>View recordset <a href="recordset/DS-2019PHY">DS-2019PHY</a> which lacks a DOI but is cited by "Microbiome and environment explain the absence of correlations between consumers and their diet in Bornean microsnails" (<a href="https://doi.org/10.1002/ecy.3237">doi:10.1002/ecy.3237</a>).</li>';
 		echo '<li>View recordset <a href="recordset/DS-SATYP1">DS-SATYP1</a> which comprises type specimens of saturniid moths.</li>';		
 		echo '<li>View recordset <a href="recordset/DS-PREYARMY">DS-PREYARMY</a> containing army ant prey, the army ants themselves are in <a href="recordset/DS-NEOARMY">DS-NEOARMY</a>, see "Hunting habits die hard: Conserved prey preferences in army ants across two distant neotropical rainforests" <a href="https://doi.org/10.1002/ecs2.4812">doi:10.1002/ecs2.4812</a>.</li>';
 		echo '<li>View recordset <a href="recordset/DS-ALLSAT">DS-ALLSAT</a> containing lots of images of saturnids (no DOI).</li>';
@@ -1314,6 +1314,21 @@ function display_recordset($id)
 
 		echo '<p>' . get_text(['recordset', 'lede']) . '</p>';		
 		
+		// citations: works that cite this dataset (dataset_citation table)
+		$citations = get_recordset_citations($id);
+		if (count($citations) > 0)
+		{
+			echo '<h2>' . get_text(['recordset', 'citations']) . '</h2>';
+			echo '<p>' . sprintf(get_text(['recordset', 'citations_lede']), count($citations)) . '</p>';
+			echo '<ul class="citations">';
+			foreach ($citations as $c)
+			{
+				echo '<li><a href="' . htmlspecialchars($c['href']) . '" target="_blank" rel="noopener">'
+					. htmlspecialchars($c['label']) . '</a></li>';
+			}
+			echo '</ul>';
+		}
+
 		// map
 		echo '<h2>'. get_text(['recordset', 'map']) . '</h2>';
 		echo '<p>'. get_text(['recordset', 'map_lede']) . '</p>';
@@ -1329,11 +1344,11 @@ function display_recordset($id)
 		echo '<div class="gallery">
 		<ul id="rs_gallery"></ul>
 		</div>';
-		
-		
+
+
 		// barcodes
-		
-		
+
+
 		echo '</div>';
 		
 		

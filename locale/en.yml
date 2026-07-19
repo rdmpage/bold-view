@@ -81,6 +81,8 @@ en:
     
     
   recordset:
+    citations: Citations
+    citations_lede: Publications that cite this dataset (%d).
     images: Images
     images_lede: Images for barcodes in this dataset.  
     lede: A dataset comprises a set of barcodes.
