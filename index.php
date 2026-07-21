@@ -1314,19 +1314,32 @@ function display_recordset($id)
 
 		echo '<p>' . get_text(['recordset', 'lede']) . '</p>';		
 		
-		// citations: works that cite this dataset (dataset_citation table)
-		$citations = get_recordset_citations($id);
-		if (count($citations) > 0)
+		// citations: works that cite this dataset (dataset_citation + work_csl)
+		$works = get_recordset_citation_works($id);
+		if (count($works) > 0)
 		{
 			echo '<h2>' . get_text(['recordset', 'citations']) . '</h2>';
-			echo '<p>' . sprintf(get_text(['recordset', 'citations_lede']), count($citations)) . '</p>';
-			echo '<ul class="citations">';
-			foreach ($citations as $c)
+			echo '<p>' . sprintf(get_text(['recordset', 'citations_lede']), count($works)) . '</p>';
+
+			// formatted references for works we have CSL-JSON for
+			echo format_citation_bibliography($works, 'apa');
+
+			// bare identifier links for works without CSL yet
+			$without_csl = array_filter($works, function ($w) { return $w['csl'] === null; });
+			if (count($without_csl) > 0)
 			{
-				echo '<li><a href="' . htmlspecialchars($c['href']) . '" target="_blank" rel="noopener">'
-					. htmlspecialchars($c['label']) . '</a></li>';
+				echo '<ul class="citations">';
+				foreach ($without_csl as $w)
+				{
+					$c = $w['link'];
+					if ($c)
+					{
+						echo '<li><a href="' . htmlspecialchars($c['href']) . '" target="_blank" rel="noopener">'
+							. htmlspecialchars($c['label']) . '</a></li>';
+					}
+				}
+				echo '</ul>';
 			}
-			echo '</ul>';
 		}
 
 		// map

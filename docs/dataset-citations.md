@@ -36,11 +36,46 @@ CREATE TABLE dataset_citation (
   doi          text,            -- citing work (~94% of rows)
   handle       text,
   urn          text,
-  url          text
+  url          text,
+  -- pid: the citing work's canonical identifier, picked from the ids above by
+  -- preference doi > handle > urn > url, as a URI. Generated + stored, so it is
+  -- always consistent and recomputed on reload. The stable key for the future
+  -- pid -> CSL-JSON works table (see below).
+  pid text GENERATED ALWAYS AS (
+    COALESCE(
+      'https://doi.org/'        || lower(NULLIF(doi, '')),   -- DOIs lowercased
+      'https://hdl.handle.net/' ||       NULLIF(handle, ''),
+      NULLIF(urn, ''),
+      NULLIF(url, '')
+    )
+  ) STORED
 );
 CREATE INDEX dataset_citation_dataset_idx ON dataset_citation (dataset);
+CREATE INDEX dataset_citation_pid_idx     ON dataset_citation (pid);
 GRANT SELECT ON dataset_citation TO boldview_app;   -- app reads it
 ```
+
+The `\copy` load lists the six source columns explicitly, so it never touches the
+generated `pid` — the load command below is unchanged.
+
+**Table already exists (production)?** Add `pid` in place — Postgres computes it
+for every existing row immediately, no reload needed:
+
+```sql
+ALTER TABLE dataset_citation
+  ADD COLUMN pid text GENERATED ALWAYS AS (
+    COALESCE(
+      'https://doi.org/'        || lower(NULLIF(doi, '')),
+      'https://hdl.handle.net/' ||       NULLIF(handle, ''),
+      NULLIF(urn, ''),
+      NULLIF(url, '')
+    )
+  ) STORED;
+CREATE INDEX dataset_citation_pid_idx ON dataset_citation (pid);
+```
+
+Verified against the live table (read-only): 0 rows get a NULL `pid`; 1,660 →
+DOIs, 25 → handles, 2 → URNs, rest → URLs.
 
 Load / reload (the CSV is regenerated, so truncate-and-reload is fine). Run in
 psql connected as the owner, from the `bold-dataset-citations` directory:
@@ -63,6 +98,54 @@ TRUNCATE dataset_citation;
   shown only when there are citations.
 
 Not exposed via the API/v1 yet — recordset web view only, by design (keep small).
+
+## Formatted references
+
+The `pid` column is the join key for a **`pid → CSL-JSON`** works table:
+
+```sql
+CREATE TABLE work_csl (           -- one CSL-JSON blob per citing work
+  pid text PRIMARY KEY,           -- matches dataset_citation.pid
+  csl jsonb                       -- decoded to PHP objects for citeproc
+);
+GRANT SELECT ON work_csl TO boldview_app;
+```
+
+Not all citing works have CSL at first — the table is populated over time (DOIs
+via doi.org content negotiation, etc.). Formatting is done **server-side** in PHP
+with `seboettg/citeproc-php` (added to composer.json, with the CSL
+`citation-style-language/styles` + `locales` packages), because the citations are
+already server-rendered inline in `display_recordset()` and the CSL lives in
+Postgres — no reason to ship CSL + a citeproc bundle to the browser. (citeproc-js
+would only pay off for in-browser live style-switching.)
+
+Display flow: `dataset_citation.pid` → `LEFT JOIN work_csl` → for works **with**
+CSL, render one formatted bibliography via citeproc (default style `apa`); for
+works **without** CSL yet, fall back to the current bare identifier link.
+
+```php
+use Seboettg\CiteProc\CiteProc;
+use Seboettg\CiteProc\StyleSheet;
+
+// Render the works that have CSL as one formatted bibliography (HTML), '' if none.
+function format_citation_bibliography($works, $format = 'apa')
+{
+    $items = array();
+    foreach ($works as $w) { if ($w['csl'] !== null) { $items[] = $w['csl']; } }
+    if (count($items) == 0) { return ''; }
+
+    try {
+        $citeProc = new CiteProc(StyleSheet::loadStyleSheet($format));
+        return $citeProc->render($items, "bibliography");   // one call for the whole list
+    } catch (\Exception $e) {
+        return '';   // malformed CSL -> fall back to bare links, never fatal
+    }
+}
+```
+
+Notes: each CSL item needs an `id` (set it to the pid if absent); render the whole
+list in **one** `render()` call, not per item; citeproc needs the composer
+autoloader (already loaded via `language.php` on the web pages).
 
 ## Possible follow-on
 

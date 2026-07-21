@@ -21,6 +21,11 @@ require_once('tree/tree-drawer.php');
 require_once('tree/tree-parse.php');
 require_once('tree/utils.php');
 
+require_once (dirname(__FILE__) . '/vendor/autoload.php');
+
+use Seboettg\CiteProc\CiteProc;
+use Seboettg\CiteProc\StyleSheet;
+
 //----------------------------------------------------------------------------------------
 function sequence_to_embedding ($text)
 {
@@ -1561,58 +1566,148 @@ function get_recordset($id)
 }
 
 //----------------------------------------------------------------------------------------
-// Works that cite this dataset. Reads the dataset_citation table (mirror of
-// bold-dataset-citations/results/citations.csv), which is loaded separately with
-// owner privileges — this app's role is read-only. Returns [] gracefully until
-// the table exists. Each entry is structured link data; the view builds the HTML.
-function get_recordset_citations($id)
+// Can the (read-only) app actually SELECT from this table? Tables like
+// dataset_citation / work_csl are created out of band (owner-privileged) and may
+// exist before a GRANT is in place — so check existence AND read privilege, not
+// just existence, otherwise the query fails with "permission denied" instead of
+// degrading gracefully.
+function pg_table_readable($qualified_name)
 {
 	global $db;
 
-	$citations = array();
-
-	// The table is loaded out-of-band (owner-privileged); tolerate its absence.
-	$reg = pg_query($db, "SELECT to_regclass('public.dataset_citation') AS t");
-	$exists = $reg ? pg_fetch_result($reg, 0, 't') : null;
-	if (!$exists)
+	// exists? (has_table_privilege would error on a non-existent table)
+	$result = pg_query_params($db, "SELECT to_regclass($1) AS t", array($qualified_name));
+	$exists = $result ? pg_fetch_result($result, 0, 't') : null;
+	if (!is_string($exists) || $exists === '')
 	{
-		return $citations;
+		return false;
 	}
 
-	$sql = "SELECT doi, handle, urn, url
-	        FROM dataset_citation
-	        WHERE dataset = $1
-	        ORDER BY doi NULLS LAST, url NULLS LAST";
+	// readable by the current role?
+	$result = pg_query_params($db, "SELECT has_table_privilege($1, 'SELECT') AS ok", array($qualified_name));
+	return $result ? (pg_fetch_result($result, 0, 'ok') === 't') : false;
+}
+
+//----------------------------------------------------------------------------------------
+// Works that cite this dataset, each with its decoded CSL-JSON where we have it.
+// Reads dataset_citation (mirror of bold-dataset-citations/results/citations.csv)
+// LEFT JOINed to work_csl (pid -> CSL). Returns [] gracefully until the tables
+// exist. Each entry: ['pid' => str, 'csl' => object|null, 'link' => array|null].
+// Works without CSL fall back to the bare identifier link.
+function get_recordset_citation_works($id)
+{
+	global $db;
+
+	$works = array();
+
+	if (!pg_table_readable('public.dataset_citation'))
+	{
+		return $works;
+	}
+
+	// work_csl may not exist yet, or exist without a SELECT grant; only join to
+	// it when we can actually read it.
+	$have_csl = pg_table_readable('public.work_csl');
+
+	$sql = "SELECT dc.pid, dc.doi, dc.handle, dc.urn, dc.url, "
+	     . ($have_csl ? "wc.csl" : "NULL::jsonb AS csl")
+	     . " FROM dataset_citation dc "
+	     . ($have_csl ? "LEFT JOIN work_csl wc ON wc.pid = dc.pid " : "")
+	     . "WHERE dc.dataset = $1 "
+	     . "ORDER BY dc.pid";
 
 	$result = pg_query_params($db, $sql, array($id));
 	if ($result)
 	{
 		while ($row = pg_fetch_assoc($result))
 		{
-			$link = citation_row_to_link($row);
-			if ($link)
+			$csl = null;
+			if (!empty($row['csl']))
 			{
-				$citations[] = $link;
+				$csl = json_decode($row['csl']);   // stdClass — citeproc wants objects
+				if ($csl !== null && !isset($csl->id))
+				{
+					$csl->id = $row['pid'];         // seboettg citeproc needs an id per item
+				}
 			}
+
+			$works[] = array(
+				'pid'  => $row['pid'],
+				'csl'  => $csl,
+				'link' => citation_row_to_link($row),
+			);
 		}
 	}
 
-	return $citations;
+	return $works;
+}
+
+//----------------------------------------------------------------------------------------
+// Render the works that have CSL as a single formatted bibliography (HTML string),
+// or '' if none have CSL. $format is a CSL style name (e.g. 'apa'). Malformed CSL
+// degrades to '' rather than a fatal, so the caller can still show fallback links.
+function format_citation_bibliography($works, $format = 'apa')
+{
+	$items = array();
+	foreach ($works as $work)
+	{
+		if ($work['csl'] !== null)
+		{
+			$items[] = $work['csl'];
+		}
+	}
+
+	if (count($items) == 0)
+	{
+		return '';
+	}
+
+	// Make DOIs / URLs clickable in the rendered references. 'affixes' => true so
+	// the wrap covers the fully-rendered value (incl. the style's
+	// "https://doi.org/" prefix), giving one anchor over the whole displayed URL.
+	$markup = array(
+		'DOI' => array(
+			'affixes'  => true,
+			'function' => function ($item, $rendered) {
+				$doi = isset($item->DOI) ? trim($item->DOI) : '';
+				if ($doi === '') { return $rendered; }
+				$href = (stripos($doi, 'http') === 0) ? $doi : 'https://doi.org/' . $doi;
+				return '<a href="' . htmlspecialchars($href) . '" target="_blank" rel="noopener">' . $rendered . '</a>';
+			},
+		),
+		'URL' => array(
+			'affixes'  => true,
+			'function' => function ($item, $rendered) {
+				$url = isset($item->URL) ? trim($item->URL) : '';
+				if ($url === '') { return $rendered; }
+				return '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener">' . $rendered . '</a>';
+			},
+		),
+	);
+
+	try
+	{
+		$citeproc = new CiteProc(StyleSheet::loadStyleSheet($format), 'en-US', $markup);
+		return $citeproc->render($items, "bibliography");   // one call for the whole list
+	}
+	catch (\Exception $e)
+	{
+		return '';
+	}
 }
 
 //----------------------------------------------------------------------------------------
 // Turn a dataset_citation row into a resolvable link. One citing work may carry
-// several identifiers; prefer the most canonical/resolvable: doi > url > handle > urn.
+// several identifiers; prefer the most canonical/resolvable, matching the pid
+// hierarchy in the DB: doi > handle > urn > url. (Display uses resolver URLs for
+// the href — e.g. urns via nbn-resolving.org — whereas the pid column stores the
+// bare urn; they agree on which identifier wins, just differ in href form.)
 // Returns ['href', 'label', 'kind'] or null if the row has no usable identifier.
 function citation_row_to_link($row)
 {
 	if (!empty($row['doi']))
 	{
 		return array('href' => 'https://doi.org/' . $row['doi'], 'label' => $row['doi'], 'kind' => 'doi');
-	}
-	if (!empty($row['url']))
-	{
-		return array('href' => $row['url'], 'label' => $row['url'], 'kind' => 'url');
 	}
 	if (!empty($row['handle']))
 	{
@@ -1621,6 +1716,10 @@ function citation_row_to_link($row)
 	if (!empty($row['urn']))
 	{
 		return array('href' => 'https://nbn-resolving.org/' . $row['urn'], 'label' => $row['urn'], 'kind' => 'urn');
+	}
+	if (!empty($row['url']))
+	{
+		return array('href' => $row['url'], 'label' => $row['url'], 'kind' => 'url');
 	}
 	return null;
 }
