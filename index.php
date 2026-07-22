@@ -261,6 +261,7 @@ function default_display($error_msg = '')
 		
 		echo '<li> View a trichoptera barcode (<a href="record/GBMNE18123-21">NTSMB174-09</a> that has name "Smicridea R. n. sp. 18 BR" and catalogue number UMSP000088771. GenBank accession KX143199 comes from <a href="https://doi.org/10.1098/rstb.2016.0025">doi:10.1098/rstb.2016.0025</a>, but species is described in <a href="https://doi.org/10.1111/aen.12417">doi:10.1111/aen.12417</a> which has table listing voucher codes and BOLD barcodes. "Smicridea R." resumably refers to <i>Smicridea (Rhyacophylax)</i>. </li>';
 		
+		echo '<li> View a barcode (<a href="record/GBGL0272-06">GBGL0272-06</a> for <i>Phauda bicolor</i>, BOLD does not have coordinates but locality is "Indonesia, ID, North Sumatra,Purba, 1 km S Seribudolok, 2o54`59``N 98o38`24``E, 1380 m, 03.02". <i>Phauda bicolor</i> is descrbed in <a href="https://biostor.org/reference/144878">Phauda bicolor sp. n. from North Sumatra (Indonesia) (Zygaenidae: Phaudinae)</a> </li>';
 		
 		
 		echo '</ul>';
