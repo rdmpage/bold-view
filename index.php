@@ -302,6 +302,9 @@ function default_display($error_msg = '')
 		echo '<li><i>Dicrotendipes sinicus</i> had to be published twice, <a href="https://doi.org/10.1111/zsc.12331">doi:10.1111/zsc.12331</a> and <a href="https://doi.org/10.5324/cjcr.v0i34.4079">doi:10.5324/cjcr.v0i34.4079</a></li>';
 		echo '<li><i>Congeria</i> species published twice, <a href="https://doi.org/10.1186/1742-9994-10-5">doi:10.1186/1742-9994-10-5</a> and <a href="https://doi.org/10.20302/NC.2023.32.29">doi:10.20302/NC.2023.32.29</a></li>';
 		echo '<li><i>Leurus davidwahli</i> is not the species name, it is <li><i>Leurus wahli</i> published in <a href="https://doi.org/10.11646/zootaxa.5529.3.5">doi:10.11646/zootaxa.5529.3.5</a> and named after David B. Wahl</li>';
+		
+		echo '<li>It looks like the same taxon of <i>Tropiocolotes</i> in Iran has been described using the same name by two separate research groups: <i>Tropiocolotes hormozganensis</i> by ROUNAGHI et al. (<a href="https://biozoojournals.ro/swjhbe/v9n1/02_swjhbe_v9n2_Rounaghi.pdf">https://biozoojournals.ro/swjhbe/v9n1/02_swjhbe_v9n2_Rounaghi.pdf</a>, published July 2018 according to the <a href="https://biozoojournals.ro/swjhbe/v9n1.html">journal website</a>, registered with <a href="https://zoobank.org/urn:lsid:zoobank.org:pub:C49EA333-2BEE-4D8C-85CC-CDAC0AF27902">ZooBank</a>) and RAJABIZADEH et al. (<a href="https://doi.org/10.11646/zootaxa.4388.2.10">doi:10.11646/zootaxa.4388.2.10</a>, published 2018-03-01), see also <a href="http://reptile-database.reptarium.cz/Tropiocolotes/hormozganensis">Reptile Database</a>. ROUNAGHI et al. also published barcode data that their description paper was partly based on: <a href="https://doi.org/10.11646/zootaxa.4303.2.4">doi:10.11646/zootaxa.4303.2.4</a></li>';
+		
 		echo '</ul>';	
 		
 		echo '<li>BIN Maps</li>';
