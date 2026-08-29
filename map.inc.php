@@ -314,7 +314,10 @@ function map_search(geo, filter = '') {
 					html += '<li class="media-item">';
 					
 					if (data.hits[i].images) {
-						html += '<img class="media-figure" src="image_proxy.php?url=' + encodeURIComponent(data.hits[i].images[0].url.replace('www', 'v4')) + '">';
+						var mi = data.hits[i].images[0];
+						html += '<img class="media-figure" src="' + mi.src + '"'
+						     + (mi.fallback_src ? ' onerror="this.onerror=null;this.src=\'' + mi.fallback_src + '\'"' : '')
+						     + '>';
 					} else {
 						html += '<img class="media-figure" src="images/100x100.png">';					
 					}

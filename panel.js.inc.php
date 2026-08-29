@@ -184,7 +184,19 @@ function load_gallery(listId, baseUrl, page, pageSize) {
 				var li = document.createElement('li');
 				var im = document.createElement('img');
 				im.title = img.title || '';
-				im.src = 'image_proxy.php?url=' + encodeURIComponent(img.url.replace('www', 'v4'));
+				im.src = img.src;
+				if (img.fallback_src) {
+					// Content store 404: the sha1 was synced before the upload
+					// landed. Retry once via BOLD rather than show a broken tile.
+					// Carried on the element, not captured in a closure: `img`
+					// is a function-scoped var, so every handler in this loop
+					// would otherwise see the last image's fallback.
+					im.setAttribute('data-fallback-src', img.fallback_src);
+					im.onerror = function () {
+						this.onerror = null;
+						this.src = this.getAttribute('data-fallback-src');
+					};
+				}
 				im.setAttribute('onclick',
 					'show_panel_snippet("api.php?image=' +
 					encodeURIComponent(img.url) + '&format=html")');

@@ -84,6 +84,9 @@ function pq_record_to_obj($row)
 				
 				// image
 				case 'url':
+				// SHA-1 of the image bytes in our content store; empty until
+				// the harvest reaches this image.
+				case 'sha1':
 					$hit->{$k} = $v;
 					break;
 					
@@ -769,27 +772,91 @@ function feature_collection($hits)
 }
 
 //----------------------------------------------------------------------------------------
-// Get image using URL
-function get_image($url) 
+// Fetch the image from BOLD through our caching proxy. This is the fallback
+// for images the harvest hasn't reached yet.
+function image_proxy_url($url)
 {
-	global $db;
-	
-	$url = str_replace(' ', '+', $url);
-	
-	$image = null;
-	
-	$sql = "SELECT * FROM boldimage
-	WHERE url='" . $url . "'";
-	
-	$result = pg_query($db, $sql);
-	
-	while ($row = pg_fetch_assoc($result)) 
+	return 'image_proxy.php?url=' . urlencode(str_replace('www.', 'v4.', $url));
+}
+
+//----------------------------------------------------------------------------------------
+// Preferred <img src>: our own content store when we hold the bytes, otherwise
+// BOLD via the proxy.
+function image_src($image)
+{
+	global $config;
+
+	if (isset($image->sha1) && $image->sha1 != '')
 	{
-		$image = pq_record_to_obj($row);
+		return $config['content_store'] . $image->sha1;
+	}
+
+	return image_proxy_url($image->url);
+}
+
+//----------------------------------------------------------------------------------------
+// Attach the display URLs to an image object, so PHP and the JavaScript
+// galleries render from the same decision instead of each re-deriving it.
+//
+// fallback_src is only set when src points at the content store: the database
+// can be ahead of the bucket (a sha1 synced before its upload landed), and a
+// single retry against BOLD keeps that gap from showing as a broken image.
+function image_add_src($image)
+{
+	if (!isset($image->url))
+	{
+		return $image;
+	}
+
+	$image->src = image_src($image);
+
+	$proxy = image_proxy_url($image->url);
+	if ($image->src !== $proxy)
+	{
+		$image->fallback_src = $proxy;
 	}
 
 	return $image;
-}	
+}
+
+//----------------------------------------------------------------------------------------
+// src="..." plus, where relevant, the onerror that retries via BOLD. Emitting
+// both from one place keeps the quoting correct at each <img> site.
+function image_src_attrs($image)
+{
+	$attrs = 'src="' . htmlspecialchars(image_src($image), ENT_QUOTES) . '"';
+
+	if (isset($image->sha1) && $image->sha1 != '')
+	{
+		$js = "this.onerror=null;this.src='" . image_proxy_url($image->url) . "'";
+		$attrs .= ' onerror="' . htmlspecialchars($js, ENT_QUOTES) . '"';
+	}
+
+	return $attrs;
+}
+
+//----------------------------------------------------------------------------------------
+// Get image using URL
+function get_image($url)
+{
+	global $db;
+
+	$url = str_replace(' ', '+', $url);
+
+	$image = null;
+
+	$sql = "SELECT * FROM boldimage
+	WHERE url='" . $url . "'";
+
+	$result = pg_query($db, $sql);
+
+	while ($row = pg_fetch_assoc($result))
+	{
+		$image = image_add_src(pq_record_to_obj($row));
+	}
+
+	return $image;
+}
 
 //----------------------------------------------------------------------------------------
 // Images for a barcode
@@ -799,14 +866,14 @@ function get_barcode_images($processid)
 	
 	$images = array();
 
-	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title FROM boldvector 
+	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title, boldimage.sha1 FROM boldvector
 	INNER JOIN boldimage USING(processid)
 	WHERE processid='" . $processid . "'";
 	$result = pg_query($db, $sql);
-	
-	while ($row = pg_fetch_assoc($result)) 
+
+	while ($row = pg_fetch_assoc($result))
 	{
-		$images[] = pq_record_to_obj($row);
+		$images[] = image_add_src(pq_record_to_obj($row));
 	}
 
 	return $images;
@@ -823,14 +890,14 @@ function get_bin_images($bin_uri, $limit = 500)
 	
 	$images = array();
 
-	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title FROM boldvector 
+	$sql = "SELECT boldimage.processid, boldimage.url, boldimage.title, boldimage.sha1 FROM boldvector
 	INNER JOIN boldimage USING(processid)
 	WHERE bin_uri='" . $bin_uri . "' LIMIT " . $limit;
 	$result = pg_query($db, $sql);
-	
-	while ($row = pg_fetch_assoc($result)) 
+
+	while ($row = pg_fetch_assoc($result))
 	{
-		$images[] = pq_record_to_obj($row);
+		$images[] = image_add_src(pq_record_to_obj($row));
 	}
 
 	return $images;
@@ -1493,7 +1560,7 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 	// List of records 
 	$obj->hits = array();
 	
-	$sql = "SELECT boldimage.processid,	url, title, view, mimetype, clean_license
+	$sql = "SELECT boldimage.processid,	url, title, view, mimetype, clean_license, sha1
 	FROM boldmeta
 	INNER JOIN boldimage USING(processid)";
 	
@@ -1513,7 +1580,7 @@ function get_paged_images($page_start = 0, $page_size = 100, $filter_string ='')
 	
 	while ($row = pg_fetch_assoc($result)) 
 	{
-		$hit = pq_record_to_obj($row);
+		$hit = image_add_src(pq_record_to_obj($row));
 		$obj->hits[] = $hit;
 	}
 	

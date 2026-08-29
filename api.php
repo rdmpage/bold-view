@@ -28,7 +28,7 @@ function display_image ($id, $format = '', $callback = '')
 		{
 			case 'html':
 				// to do: we want to return a small snippet, not a full page
-				$html = '<img src="image_proxy.php?url=' . urlencode(str_replace('www', 'v4', $doc->url)) . '" width="100%">';
+				$html = '<img ' . image_src_attrs($doc) . ' width="100%">';
 
 				$html .= '<dl>';
 				
@@ -140,7 +140,7 @@ function display_barcode ($id, $format = '', $callback = '')
 				
 				if (isset($doc->images))
 				{
-					$html .= '<img src="image_proxy.php?url=' . urlencode(str_replace('www', 'v4', $doc->images[0]->url)) . '" width="256">';
+					$html .= '<img ' . image_src_attrs($doc->images[0]) . ' width="256">';
 				}				
 						
 				send_html($html, $doc->status);
