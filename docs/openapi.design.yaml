@@ -1,0 +1,431 @@
+openapi: 3.1.0
+info:
+  title: Bold View API
+  version: 1.0.0-draft
+  description: >
+    Read-only HTTP API over the Bold View DNA-barcode database (BOLD records,
+    BINs, taxa, datasets) with sequence similarity search. This document is the
+    stable contract for machine consumers (including the MCP server).
+
+    Content is negotiated with the `format` query parameter. `json` (default),
+    `geojson` and `fasta` are contract representations described here. `html`
+    is a presentational, server-rendered UI fragment: it is intentionally NOT
+    part of the contract and its body must not be parsed by clients.
+  license:
+    name: See repository
+
+servers:
+  - url: https://boldview.iphylo.org/api/v1
+    description: Production
+  - url: http://localhost/bold-view/api/v1
+    description: Local
+
+tags:
+  - name: records
+  - name: bins
+  - name: taxa
+  - name: recordsets
+  - name: search
+
+paths:
+  /records/{processid}:
+    get:
+      tags: [records]
+      summary: Get one barcode record
+      parameters:
+        - $ref: '#/components/parameters/Processid'
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: The record
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Record' }
+            text/html:
+              schema: { type: string, description: Opaque UI fragment (not contract) }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /records/{processid}/images:
+    get:
+      tags: [records]
+      summary: Images attached to a record
+      parameters:
+        - $ref: '#/components/parameters/Processid'
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: Images for the record
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: integer }
+                  images:
+                    type: array
+                    items: { $ref: '#/components/schemas/Image' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /records/{processid}/related:
+    get:
+      tags: [records]
+      summary: Nearest sequences to a record (vector kNN)
+      parameters:
+        - $ref: '#/components/parameters/Processid'
+        - $ref: '#/components/parameters/Limit'
+        - name: tree
+          in: query
+          description: If set, add a `newick` NJ tree of the hits to the response.
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: Related sequences, nearest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RelatedResult' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /bins/{bin_uri}:
+    get:
+      tags: [bins]
+      summary: Get one BIN
+      parameters:
+        - $ref: '#/components/parameters/BinUri'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: The BIN and its member hits
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bin' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /bins/{bin_uri}/sequences:
+    get:
+      tags: [bins]
+      summary: Raw sequences for a BIN as FASTA
+      parameters:
+        - $ref: '#/components/parameters/BinUri'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: FASTA text
+          content:
+            text/plain:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /taxa/{id}:
+    get:
+      tags: [taxa]
+      summary: Get a taxon by internal id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The taxon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Taxon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /taxa:
+    get:
+      tags: [taxa]
+      summary: Find a taxon by name
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: Taxon name, optionally with a `rank__` prefix (e.g. `g__Bombus`).
+          schema: { type: string }
+        - name: rank
+          in: query
+          schema:
+            type: string
+            enum: [kingdom, phylum, class, order, family, subfamily, tribe, genus, species, subspecies]
+      responses:
+        '200':
+          description: The matched taxon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Taxon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /recordsets/{id}:
+    get:
+      tags: [recordsets]
+      summary: Dataset metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recordset / dataset code (e.g. DS-XXXXXXX).
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dataset metadata
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Recordset' }
+            application/geo+json:
+              schema: { $ref: '#/components/schemas/GeoJsonFeature' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /recordsets/{id}/records:
+    get:
+      tags: [recordsets]
+      summary: Barcodes in a dataset (paged)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Page of records
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecordPage' }
+
+  /barcodes:
+    get:
+      tags: [records]
+      summary: Paged barcode list with filter
+      parameters:
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Page of records
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecordPage' }
+
+  /search/sequence:
+    post:
+      tags: [search]
+      summary: BLAST-style similarity search for a sequence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sequence]
+              properties:
+                sequence:
+                  type: string
+                  description: Nucleotide sequence (FASTA body or raw bases).
+                marker_code:
+                  type: string
+                  default: COI-5P
+                limit:
+                  type: integer
+                  default: 100
+                tree:
+                  type: boolean
+      responses:
+        '200':
+          description: Ranked hits
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RelatedResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+components:
+  parameters:
+    Processid:
+      name: processid
+      in: path
+      required: true
+      description: BOLD process id (URL-encoded).
+      schema: { type: string }
+    BinUri:
+      name: bin_uri
+      in: path
+      required: true
+      description: BIN URI, e.g. `BOLD:AAA1234` (URL-encoded).
+      schema: { type: string }
+    Format:
+      name: format
+      in: query
+      description: Representation. `json` is the default and canonical contract format.
+      schema:
+        type: string
+        enum: [json, geojson, fasta, html]
+        default: json
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 100, minimum: 1 }
+    Page:
+      name: page
+      in: query
+      description: 1-based page number.
+      schema: { type: integer, default: 1, minimum: 1 }
+    Filter:
+      name: filter
+      in: query
+      description: Filter string, `key:value,key:value` (see filters.php).
+      schema: { type: string }
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status: { type: integer, example: 404 }
+        message: { type: string }
+
+    Record:
+      type: object
+      description: >
+        A barcode record (boldvector + boldmeta). The internal `embedding`
+        vector is intentionally never serialised.
+      properties:
+        status: { type: integer, description: Legacy in-body status; HTTP code is authoritative. }
+        processid: { type: string }
+        marker_code: { type: string, example: COI-5P }
+        identification: { type: string }
+        bin_uri: { type: string, example: 'BOLD:AAA1234' }
+        insdc_acs: { type: string, description: INSDC/GenBank accession }
+        museumid: { type: string }
+        nuc: { type: string, description: Nucleotide sequence (may be long) }
+        nuc_basecount: { type: integer }
+        lineage:
+          type: array
+          items: { type: string }
+        datasets:
+          type: array
+          items: { type: string, example: DS-XXXXXXX }
+        locality:
+          type: array
+          items: { type: string }
+        feature: { $ref: '#/components/schemas/GeoJsonFeature' }
+        images:
+          type: array
+          items: { $ref: '#/components/schemas/Image' }
+      required: [processid]
+
+    RecordHit:
+      allOf:
+        - $ref: '#/components/schemas/Record'
+        - type: object
+          properties:
+            distance:
+              type: number
+              format: float
+              description: Vector distance from the query (smaller = closer).
+
+    Image:
+      type: object
+      properties:
+        processid: { type: string }
+        url: { type: string, format: uri }
+        title: { type: string }
+        view: { type: string }
+        mimetype: { type: string }
+        clean_license: { type: string }
+
+    Bin:
+      type: object
+      properties:
+        status: { type: integer }
+        took: { type: number }
+        bin_uri: { type: string }
+        hits:
+          type: array
+          items: { $ref: '#/components/schemas/Record' }
+        bin_colors:
+          type: object
+          additionalProperties: { type: string }
+          description: Map of bin_uri → CSS colour.
+
+    Taxon:
+      type: object
+      properties:
+        status: { type: integer }
+        took: { type: number }
+        id: { type: string }
+        name: { type: string, description: 'Stored with rank prefix, e.g. g__Bombus' }
+        external_id: { type: string }
+        anc_id: { type: string }
+        spatialCoverage:
+          $ref: '#/components/schemas/GeoJsonFeature'
+          description: schema.org spatialCoverage — GeoJSON polygon envelope.
+
+    Recordset:
+      type: object
+      properties:
+        status: { type: integer }
+        took: { type: number }
+        id: { type: string }
+        num_barcodes: { type: integer }
+        spatialCoverage: { $ref: '#/components/schemas/GeoJsonFeature' }
+
+    RelatedResult:
+      type: object
+      properties:
+        status: { type: integer }
+        took: { type: number }
+        processid: { type: string, description: Query id (absent for sequence search). }
+        hits:
+          type: array
+          items: { $ref: '#/components/schemas/RecordHit' }
+        bin_colors:
+          type: object
+          additionalProperties: { type: string }
+        newick:
+          type: string
+          description: Present only when `tree=1` was requested.
+
+    RecordPage:
+      type: object
+      properties:
+        status: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+        count: { type: integer, description: Items in this page. }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Record' }
+
+    GeoJsonPoint:
+      type: object
+      properties:
+        type: { const: Point }
+        coordinates:
+          type: array
+          items: { type: number }
+          minItems: 2
+          maxItems: 3
+
+    GeoJsonFeature:
+      type: object
+      properties:
+        type: { const: Feature }
+        geometry:
+          description: Any GeoJSON geometry (Point, Polygon, …).
+          type: object
+        properties:
+          type: [object, "null"]

@@ -19,7 +19,10 @@ $credentials = "user = " . getenv('POSTGRES_USERNAME') . " password = " . getenv
 // server has a CA-signed / pinned certificate for full protection.
 $sslmode = getenv('POSTGRES_SSLMODE') ?: 'require';
 
-$db = pg_pconnect( "$host $port $dbname $credentials sslmode=$sslmode gssencmode=disable"  );
+// Use pg_connect (per-request), NOT pg_pconnect: persistent connections under
+// mod_php get handed back in a bad state, triggering "Cannot set connection to
+// blocking mode" on the SET below and failing every query on that worker.
+$db = pg_connect( "$host $port $dbname $credentials sslmode=$sslmode gssencmode=disable"  );
 if(!$db) {
   echo "Error : Unable to open database\n";
   exit();
